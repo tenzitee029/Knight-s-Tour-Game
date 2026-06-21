@@ -49,16 +49,17 @@ class Gameplay:
         rows, cols = lvl_cfg["rows"], lvl_cfg["cols"]
         obstacles = lvl_cfg["obstacles"]
         
-        # --- TỰ ĐỘNG RANDOM VỊ TRÍ BẮT ĐẦU HỢP LỆ ---
-        valid_positions = []
-        for r in range(rows):
-            for c in range(cols):
-                if (r, c) not in obstacles:
-                    valid_positions.append((r, c))
+# --- BẮT ĐẦU TỪ Ô GIỮA BÀN CỜ ---
+        center_r = rows // 2
+        center_c = cols // 2
         
-        # Chọn ngẫu nhiên 1 ô trong danh sách các ô không có vật cản
-        self.start_pos = random.choice(valid_positions)
-        # --------------------------------------------
+        # Đặt vị trí xuất phát ở giữa
+        # Kèm thêm kiểm tra an toàn: nếu ô giữa vô tình bị cấu hình là vật cản, sẽ chọn tạm 1 ô trống đầu tiên
+        if (center_r, center_c) not in obstacles:
+            self.start_pos = (center_r, center_c)
+        else:
+            valid_positions = [(r, c) for r in range(rows) for c in range(cols) if (r, c) not in obstacles]
+            self.start_pos = valid_positions[0]
 
         # Truyền vị trí start_pos vừa random vào Solver
         self.solver = KnightTourSolver(rows, cols, start_pos=self.start_pos, obstacles=obstacles)

@@ -32,6 +32,8 @@ def save_match(level_name, algo_name, total_steps, execution_time, status):
     history.append(match_data)
     with open(HISTORY_FILE, "w", encoding="utf-8") as f:
         json.dump(history, f, ensure_ascii=False, indent=4)
+    
+    return match_data["id"]
 
 def delete_history_item(match_id):
     history = load_history()
@@ -40,5 +42,7 @@ def delete_history_item(match_id):
         json.dump(history, f, ensure_ascii=False, indent=4)
 
 def clear_all_history():
+    """Xóa trắng toàn bộ lịch sử trận đấu"""
+    init_db()
     with open(HISTORY_FILE, "w", encoding="utf-8") as f:
         json.dump([], f, ensure_ascii=False, indent=4)

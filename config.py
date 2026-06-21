@@ -28,4 +28,4 @@ LEVELS = {
 }
 
 ALGORITHMS = ["Depth-First Search (DFS)", "Breadth-First Search (BFS)"]
-AI_DELAY = 0.4
+AI_DELAY = 0.00001

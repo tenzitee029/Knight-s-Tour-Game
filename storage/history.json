@@ -1,1 +1,11 @@
-[]
+[
+    {
+        "id": 1,
+        "date": "2026-06-21 17:45:47",
+        "level": "Khởi Động (5x5)",
+        "algo": "Depth-First Search (DFS)",
+        "steps": 25,
+        "time": "583.46s",
+        "status": "Thành công"
+    }
+]
