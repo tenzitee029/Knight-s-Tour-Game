@@ -1,10 +1,10 @@
 import pygame
 import time
-import random  # Thêm thư viện random
 from pathlib import Path
 from config import *
 from algorithms.base_search import KnightTourSolver
 from storage.database import save_match
+from PIL import Image, ImageDraw
 
 class Gameplay:
     def __init__(self, manager):
@@ -31,6 +31,8 @@ class Gameplay:
         self.btn_popup_close = pygame.Rect(400, 420, 200, 40)
         self.last_ai_move_time = 0 
         self.start_pos = (0, 0)  # Thêm biến lưu vị trí bắt đầu để vẽ màu riêng nếu cần
+        self.current_match_id = None
+        self.should_save_gifs = False
 
     def load_knight_image(self):
         try:
@@ -88,18 +90,43 @@ class Gameplay:
 
         if self.solver_generator and (current_time - self.last_ai_move_time >= AI_DELAY):
             try:
+                # Lấy bước đi tiếp theo từ thuật toán AI
                 self.path, self.visited_nodes, done = next(self.solver_generator)
                 self.last_ai_move_time = current_time
                 
                 if done:
                     self.is_finished = True
-                    self.success = len(self.path) == self.solver.total_cells
+                    self.success = (len(self.path) == self.solver.total_cells)
                     self.show_popup = True
                     status_str = "Thành công" if self.success else "Thất bại"
-                    save_match(LEVELS[self.level_id]["name"], self.algo_name, len(self.path), self.elapsed_time, status_str)
+                    
+                    # 1. Lưu trận đấu vào file JSON và lấy ID về
+                    self.current_match_id = save_match(
+                        LEVELS[self.level_id]["name"], 
+                        self.algo_name, 
+                        len(self.path), 
+                        self.elapsed_time, 
+                        status_str
+                    )
+                    
+                    # 2. KÍCH HOẠT TẠO FILE GIF NGAY TẠI ĐÂY ĐỂ ĐẢM BẢO CHẮC CHẮN CHẠY
+                    print(f"Thuật toán kết thúc với trạng thái: {status_str}. Bắt đầu khởi tạo GIF...")
+                    self.save_gifs_logic()
+                    
             except StopIteration:
                 self.is_finished = True
                 self.show_popup = True
+                # Nếu generator kết thúc bất ngờ, vẫn lưu trận đấu vào lịch sử rồi tạo GIF dự phòng
+                status_str = "Thành công" if (len(self.path) == self.solver.total_cells) else "Thất bại"
+                self.current_match_id = save_match(
+                    LEVELS[self.level_id]["name"],
+                    self.algo_name,
+                    len(self.path),
+                    self.elapsed_time,
+                    status_str
+                )
+                print("Generator dừng đột ngột. Tiến hành tạo GIF dự phòng...")
+                self.save_gifs_logic()
 
     def draw(self, screen):
         screen.fill(COLOR_BG)
@@ -164,6 +191,15 @@ class Gameplay:
         pygame.draw.rect(screen, (231, 76, 60), self.btn_back, border_radius=5)
         screen.blit(self.font.render("Dừng chơi", True, (255,255,255)), (self.btn_back.x + 22, self.btn_back.y + 8))
 
+        # Thực thi xuất file ngay khi biến này được kích hoạt ở update()
+        if self.should_save_gifs:
+            self.should_save_gifs = False
+            self.save_gifs_logic(screen)
+
+        # Vẽ popup thông báo đè lên sau cùng
+        if self.show_popup:
+            s = pygame.Surface((1000,700), pygame.SRCALPHA)
+
         if self.show_popup:
             s = pygame.Surface((1000,700), pygame.SRCALPHA)
             s.fill((0,0,0,180))
@@ -183,3 +219,103 @@ class Gameplay:
             
             pygame.draw.rect(screen, (52, 152, 219), self.btn_popup_close, border_radius=5)
             screen.blit(self.font.render("Xác nhận & Quay lại", True, (255,255,255)), (425, 428))
+
+    def export_to_gif(self, match_id):
+        """Hàm vẽ bàn cờ và xuất ra file GIF lưu trong thư mục exports"""
+        import os
+        os.makedirs("exports", exist_ok=True)
+
+    def save_gifs_logic(self):
+        """Tự động tạo và lưu trực tiếp 2 file GIF ngầm bằng Pillow"""
+        try:
+            import os
+            from PIL import Image, ImageDraw
+            from pathlib import Path
+
+            exports_dir = Path(__file__).resolve().parents[2] / "exports"
+            exports_dir.mkdir(parents=True, exist_ok=True)
+            match_id = self.current_match_id if self.current_match_id else "unknown"
+            print(f"[GIF] Bắt đầu tạo GIF cho match_id={match_id} tại {exports_dir}")
+            
+            lvl_cfg = LEVELS[self.level_id]
+            rows, cols = lvl_cfg["rows"], lvl_cfg["cols"]
+            obstacles = set(lvl_cfg["obstacles"])
+            
+            # Cấu hình khung ảnh GIF 400x400 pixel
+            img_size = 400
+            cell_w = img_size / cols
+            cell_h = img_size / rows
+            
+            def draw_frame_by_pillow(current_path_list):
+                """Hàm vẽ một trạng thái bàn cờ bằng Pillow"""
+                img = Image.new("RGBA", (img_size, img_size), (240, 244, 248))
+                draw = ImageDraw.Draw(img)
+                path_set = set(current_path_list)
+                curr_pos = current_path_list[-1] if current_path_list else self.start_pos
+                
+                for r in range(rows):
+                    for c in range(cols):
+                        x1, y1 = c * cell_w, r * cell_h
+                        x2, y2 = x1 + cell_w, y1 + cell_h
+                        
+                        if (r, c) in obstacles:
+                            color = (44, 62, 80)        # Vật cản
+                        elif (r, c) == curr_pos:
+                            color = (255, 215, 0)       # Vị trí hiện tại (Vàng)
+                        elif (r, c) in path_set:
+                            color = (100, 149, 237)     # Ô đã đi (Xanh)
+                        else:
+                            color = (235, 235, 208) if (r + c) % 2 == 0 else (119, 149, 86)
+                            
+                        draw.rectangle([x1, y1, x2, y2], fill=color, outline=(200, 200, 200))
+                        
+                        # Điền số thứ tự bước đi
+                        if (r, c) in current_path_list:
+                            step_num = current_path_list.index((r, c)) + 1
+                            draw.text((x1 + 6, y1 + 4), str(step_num), fill=(255, 255, 255) if (r, c) != curr_pos else (0, 0, 0))
+                
+                # Vẽ nét nối đường đi
+                if len(current_path_list) > 1:
+                    points = []
+                    for (r, c) in current_path_list:
+                        px = c * cell_w + cell_w / 2
+                        py = r * cell_h + cell_h / 2
+                        points.append((px, py))
+                    draw.line(points, fill=(255, 69, 0), width=2)
+                    
+                return img
+
+            # --- 1. XUẤT GIF TIẾN TRÌNH LỜI GIẢI ĐƯỜNG ĐI (Chỉ khi thành công) ---
+            if self.success and self.path:
+                path_frames = []
+                for i in range(1, len(self.path) + 1):
+                    path_frames.append(draw_frame_by_pillow(self.path[:i]))
+                    
+                if path_frames:
+                    path_out = str(exports_dir / f"match_{match_id}_path.gif")
+                    print(f"[GIF] Lưu file path -> {path_out}")
+                    path_frames[0].save(
+                        path_out, save_all=True, append_images=path_frames[1:], duration=150, loop=0
+                    )
+                    print(f"--> [OK] Đã lưu file đường đi tốt nhất: {path_out}")
+
+            # --- 2. XUẤT GIF TOÀN BỘ QUÁ TRÌNH DI CHUYỂN ---
+            process_frames = []
+            # Trích xuất mẫu khoảng 20-30 khung hình để tránh file GIF bị quá nặng
+            step_chunks = max(1, len(self.path) // 25)
+            for i in range(1, len(self.path) + 1, step_chunks):
+                process_frames.append(draw_frame_by_pillow(self.path[:i]))
+            
+            # Đảm bảo có frame cuối cùng kết thúc
+            process_frames.append(draw_frame_by_pillow(self.path))
+            
+            if process_frames:
+                proc_out = str(exports_dir / f"match_{match_id}_process.gif")
+                print(f"[GIF] Lưu file process -> {proc_out}")
+                process_frames[0].save(
+                    proc_out, save_all=True, append_images=process_frames[1:], duration=250, loop=0
+                )
+                print(f"--> [OK] Đã lưu file toàn bộ quá trình: {proc_out}")
+
+        except Exception as e:
+            print(f"❌ LỖI KHI XUẤT FILE GIF: {e}")

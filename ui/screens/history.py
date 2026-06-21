@@ -1,70 +1,87 @@
 import pygame
 import os
 import shutil
+from tkinter import Tk, filedialog
 from config import COLOR_BG, COLOR_TEXT, SCREEN_WIDTH
 from storage.database import load_history, clear_all_history
 
 class HistoryScreen:
     def __init__(self, manager):
         self.manager = manager
-        self.font = pygame.font.SysFont("Times New Roman", 15)
-        self.font_small = pygame.font.SysFont("Times New Roman", 12, bold=True)
+        self.font = pygame.font.SysFont("Times New Roman", 16)
         self.font_title = pygame.font.SysFont("Times New Roman", 26, bold=True)
         
         self.btn_back = pygame.Rect(30, 30, 100, 40)
         self.btn_clear = pygame.Rect(SCREEN_WIDTH - 180, 30, 150, 40)
-
-    def export_gif_dialog(self, match_id, gif_type):
-        """Mở hộp thoại hệ thống cho người dùng chọn thư mục và tải về file GIF"""
-        from tkinter import filedialog, Tk
-        src_file = f"exports/match_{match_id}_{gif_type}.gif"
         
-        if not os.path.exists(src_file):
-            print(f"File {src_file} không tồn tại!")
-            return
-
-        # Khởi tạo Tkinter ẩn để gọi File Dialog cục bộ không bị lỗi giao diện Pygame
-        root = Tk()
-        root.withdraw()
-        root.attributes("-topmost", True)
-        
-        default_name = f"KnightTour_Match{match_id}_{gif_type}.gif"
-        dest_path = filedialog.asksaveasfilename(
-            title=f"Lưu File GIF { 'Đường Đi' if gif_type == 'path' else 'Quá Trình' }",
-            initialfile=default_name,
-            filetypes=[("GIF files", "*.gif")]
-        )
-        root.destroy()  # Đóng kết nối cửa sổ sau khi tương tác xong
-
-        if dest_path:
-            try:
-                shutil.copy(src_file, dest_path)
-                print(f"Đã xuất file thành công tới: {dest_path}")
-            except Exception as e:
-                print(f"Lỗi khi copy file: {e}")
+        # Danh sách lưu vị trí các nút bấm của các hàng để bắt sự kiện click
+        self.download_buttons = []
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if self.btn_back.collidepoint(event.pos):
                 self.manager.switch_screen("main_menu")
+                return
             elif self.btn_clear.collidepoint(event.pos):
                 clear_all_history()
+                return
+                
+            # Kiểm tra xem có click vào nút tải GIF nào không
+            # Debug: in thông tin click và danh sách nút
+            try:
+                print(f"[DEBUG] Click tại: {event.pos}; Số nút tải hiện có: {len(self.download_buttons)}")
+                for i, (btn_rect, match_id, gif_type) in enumerate(self.download_buttons):
+                    print(f"[DEBUG] Btn[{i}] rect={btn_rect} id={match_id} type={gif_type}")
+                    if btn_rect.collidepoint(event.pos):
+                        print(f"[DEBUG] Click trúng nút tải: id={match_id} type={gif_type}")
+                        self.download_gif(match_id, gif_type)
+                        break
+            except Exception as ex:
+                print(f"[DEBUG] Lỗi khi xử lý click trong HistoryScreen: {ex}")
+
+    def download_gif(self, match_id, gif_type):
+        """Mở cửa sổ Windows để chọn nơi lưu file GIF"""
+        from pathlib import Path
+        exports_dir = Path(__file__).resolve().parents[2] / "exports"
+        source_path = str(exports_dir / f"match_{match_id}_{gif_type}.gif")
+
+        if not os.path.exists(source_path):
+            # Nếu thư mục exports không tồn tại, tạo luôn để người dùng có thể lưu sau
+            if not exports_dir.exists():
+                try:
+                    exports_dir.mkdir(parents=True, exist_ok=True)
+                    print(f"[INFO] Tạo thư mục exports tại: {exports_dir}")
+                except Exception as ex:
+                    print(f"[ERROR] Không thể tạo thư mục exports: {ex}")
+
+            # kiểm tra tên thay thế (đuôi in hoa)
+            alt = str(exports_dir / f"match_{match_id}_{gif_type}.GIF")
+            if os.path.exists(alt):
+                source_path = alt
             else:
-                # Xử lý bắt sự kiện click nút bấm trong hàng bảng dữ liệu
-                history_data = load_history()
-                y_offset = 150
-                for match in reversed(history_data[-10:]):
-                    btn_path_rect = pygame.Rect(790, y_offset - 4, 90, 25)
-                    btn_proc_rect = pygame.Rect(895, y_offset - 4, 90, 25)
-                    
-                    if match["status"] == "Thành công" and btn_path_rect.collidepoint(event.pos):
-                        self.export_gif_dialog(match["id"], "path")
-                        break
-                    if btn_proc_rect.collidepoint(event.pos):
-                        self.export_gif_dialog(match["id"], "process")
-                        break
-                        
-                    y_offset += 40
+                print(f"Không tìm thấy file gốc: {source_path}")
+                print(f"[DEBUG] Thư mục exports tồn tại: {exports_dir.exists()}; Nội dung: {list(exports_dir.glob('*')) if exports_dir.exists() else 'N/A'}")
+                print("Hãy chạy lại một trận để chương trình tạo các file GIF trong thư mục 'exports' trước khi tải xuống.")
+                return
+            
+        # Khởi tạo cửa sổ ẩn của tkinter để dùng filedialog
+        root = Tk()
+        root.withdraw()
+        root.attributes('-topmost', True) # Đưa cửa sổ lên trên cùng
+        
+        default_filename = f"knight_tour_{gif_type}_match_{match_id}.gif"
+        file_path = filedialog.asksaveasfilename(
+            title="Chọn nơi lưu file GIF",
+            initialfile=default_filename,
+            defaultextension=".gif",
+            filetypes=[("GIF Files", "*.gif")]
+        )
+        
+        root.destroy()
+        
+        if file_path:
+            shutil.copy(source_path, file_path)
+            print(f"Đã tải file về: {file_path}")
 
     def update(self): pass
 
@@ -75,46 +92,51 @@ class HistoryScreen:
         screen.blit(self.font.render("Quay lại", True, (0,0,0)), (45, 38))
         
         pygame.draw.rect(screen, (231, 76, 60), self.btn_clear, border_radius=5)
-        screen.blit(self.font.render("Xóa toàn bộ", True, (255,255,255)), (SCREEN_WIDTH - 150, 38))
+        screen.blit(self.font.render("Xóa lịch sử", True, (255,255,255)), (SCREEN_WIDTH - 150, 38))
         
-        title = self.font_title.render("LỊCH SỬ THỬ NGHIỆM AI", True, COLOR_TEXT)
+        title = self.font_title.render("LỊCH SỬ TRẬN ĐẤU AI", True, COLOR_TEXT)
         screen.blit(title, (SCREEN_WIDTH//2 - title.get_width()//2, 35))
         
-        # Thiết lập vị trí các cột tương thích màn hình 1000px rộng
-        headers = ["Thời gian", "Màn chơi", "Thuật toán", "Số bước", "T.Gian", "K.Quả", "Tải GIF 1", "Tải GIF 2"]
-        positions = [30, 200, 350, 540, 620, 700, 790, 895]
+        headers = ["Thời gian", "Màn chơi", "Thuật toán", "Số bước", "T.Gian", "Kết quả", "Tải GIF"]
+        positions = [40, 200, 360, 500, 580, 660, 780]
         
         for h, pos in zip(headers, positions):
             screen.blit(self.font.render(h, True, (0,0,0)), (pos, 110))
-        pygame.draw.line(screen, (0,0,0), (20, 135), (980, 135), 2)
+        pygame.draw.line(screen, (0,0,0), (40, 135), (960, 135), 2)
         
         history_data = load_history()
         y_offset = 150
+        
+        # Làm sạch danh sách nút trước khi vẽ lại để tránh bị lệch tọa độ
+        self.download_buttons = []
+        
+        # Hiển thị tối đa 10 trận gần nhất
         for match in reversed(history_data[-10:]):
-            screen.blit(self.font.render(match["date"], True, COLOR_TEXT), (30, y_offset))
+            screen.blit(self.font.render(match["date"], True, COLOR_TEXT), (40, y_offset))
             screen.blit(self.font.render(match["level"], True, COLOR_TEXT), (200, y_offset))
-            screen.blit(self.font.render(match["algo"], True, COLOR_TEXT), (350, y_offset))
-            screen.blit(self.font.render(str(match["steps"]), True, COLOR_TEXT), (540, y_offset))
-            screen.blit(self.font.render(match["time"], True, COLOR_TEXT), (620, y_offset))
+            screen.blit(self.font.render(match["algo"], True, COLOR_TEXT), (360, y_offset))
+            screen.blit(self.font.render(str(match["steps"]), True, COLOR_TEXT), (500, y_offset))
+            screen.blit(self.font.render(match["time"], True, COLOR_TEXT), (580, y_offset))
             
-            color_status = (46, 204, 113) if match["status"] == "Thành công" else (231, 76, 60)
-            screen.blit(self.font.render(match["status"], True, color_status), (700, y_offset))
+            # Trạng thái màu sắc kết quả
+            status_color = (46, 204, 113) if match["status"] == "Thành công" else (231, 76, 60)
+            screen.blit(self.font.render(match["status"], True, status_color), (660, y_offset))
             
-            # --- VẼ NÚT BẤM XUẤT GIF ĐƯỜNG ĐI ---
-            btn_path_rect = pygame.Rect(790, y_offset - 4, 90, 25)
+            # --- TẠO VÀ VẼ NÚT TẢI GIF ---
+            # 1. Nút tải Đường đi (chỉ bật nếu Thành công)
+            btn_path = pygame.Rect(760, y_offset - 2, 90, 24)
             if match["status"] == "Thành công":
-                pygame.draw.rect(screen, (52, 152, 219), btn_path_rect, border_radius=4)
-                txt_path = self.font_small.render("Đường đi", True, (255,255,255))
+                pygame.draw.rect(screen, (52, 152, 219), btn_path, border_radius=4)
+                screen.blit(self.font.render("Đường đi", True, (255,255,255)), (775, y_offset))
+                self.download_buttons.append((btn_path, match["id"], "path"))
             else:
-                pygame.draw.rect(screen, (200, 200, 200), btn_path_rect, border_radius=4)
-                txt_path = self.font_small.render("Không có", True, (120,120,120))
-            screen.blit(txt_path, (btn_path_rect.x + (btn_path_rect.width - txt_path.get_width())//2, btn_path_rect.y + 5))
+                pygame.draw.rect(screen, (200, 200, 200), btn_path, border_radius=4)
+                screen.blit(self.font.render("Đường đi", True, (140,140,140)), (775, y_offset))
 
-            # --- VẼ NÚT BẤM XUẤT GIF QUÁ TRÌNH ---
-            btn_proc_rect = pygame.Rect(895, y_offset - 4, 90, 25)
-            pygame.draw.rect(screen, (46, 204, 113), btn_proc_rect, border_radius=4)
-            txt_proc = self.font_small.render("Quá trình", True, (255,255,255))
-            screen.blit(txt_proc, (btn_proc_rect.x + (btn_proc_rect.width - txt_proc.get_width())//2, btn_proc_rect.y + 5))
+            # 2. Nút tải Quá trình (luôn luôn có)
+            btn_process = pygame.Rect(865, y_offset - 2, 95, 24)
+            pygame.draw.rect(screen, (46, 204, 113), btn_process, border_radius=4)
+            screen.blit(self.font.render("Quá trình", True, (255,255,255)), (882, y_offset))
+            self.download_buttons.append((btn_process, match["id"], "process"))
             
-            pygame.draw.line(screen, (220,220,220), (20, y_offset + 30), (980, y_offset + 30), 1)
-            y_offset += 40
+            y_offset += 45
