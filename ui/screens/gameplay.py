@@ -2,21 +2,18 @@ import pygame
 import time
 from pathlib import Path
 from config import *
-<<<<<<< HEAD
-from algorithms.base_search import KnightTourSolver
-=======
 
 from algorithms.uninformed.bfs import BFSSolver
 from algorithms.uninformed.dfs import DFSSolver
 from algorithms.uninformed.ucs import UCSSolver
 from algorithms.uninformed.ids import IDSSolver
 
->>>>>>> 8f13ded (Thêm nhóm thuật toán Uninformed)
 from algorithms.csp.backtracking import BacktrackingSolver
 from algorithms.csp.forward_checking import ForwardCheckingSolver
 from algorithms.csp.ac3 import AC3Solver
 from algorithms.csp.min_conflicts import MinConflictsSolver
 from algorithms.adversarial.minimax import MinimaxSolver
+
 from storage.database import save_match
 from PIL import Image, ImageDraw
 
@@ -86,9 +83,7 @@ class Gameplay:
 
             self.solver_generator = self.solver.solve()
 
-        # Truyền vị trí start_pos vừa random vào Solver
-<<<<<<< HEAD
-=======
+        # Truyền vị trí start_pos vào Solver
         elif "BFS" in algo_name:
             self.solver = BFSSolver(
                 rows,
@@ -125,7 +120,6 @@ class Gameplay:
             )
             self.solver_generator = self.solver.solve()
 
->>>>>>> 8f13ded (Thêm nhóm thuật toán Uninformed)
         elif "Backtracking" in algo_name:
             self.solver = BacktrackingSolver(
                 rows,
@@ -162,22 +156,6 @@ class Gameplay:
             )
             self.solver_generator = self.solver.solve()
 
-<<<<<<< HEAD
-        else:
-            # DFS và BFS hiện chỉ là thuật toán demo
-            self.solver = KnightTourSolver(
-                rows,
-                cols,
-                start_pos=self.start_pos,
-                obstacles=obstacles
-            )
-
-            if "DFS" in algo_name:
-                self.solver_generator = self.solver.solve_dfs()
-            else:
-                self.solver_generator = self.solver.solve_bfs() 
-=======
->>>>>>> 8f13ded (Thêm nhóm thuật toán Uninformed)
         self.start_time = time.time()
         self.last_ai_move_time = time.time()
 
