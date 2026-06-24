@@ -29,7 +29,9 @@ class LevelSelect:
 
         # Trạng thái đóng/mở danh sách thuật toán
         self.algorithm_list_open = False
-
+        self.algorithm_scroll = 0
+        self.visible_algorithm_count = 5
+        self.algorithm_option_height = 36
         # Các nút chọn màn chơi
         self.level_rects = {}
 
@@ -54,7 +56,13 @@ class LevelSelect:
             440,
             42
         )
-
+        self.algorithm_dropdown_rect = pygame.Rect(
+            self.btn_algo.x,
+            self.btn_algo.bottom,
+            self.btn_algo.width,
+            self.visible_algorithm_count
+            * self.algorithm_option_height
+        )
         # Các lựa chọn xuất hiện khi mở danh sách
         self.algorithm_option_rects = []
 
@@ -85,6 +93,33 @@ class LevelSelect:
         )
 
     def handle_event(self, event):
+        # Cuộn danh sách thuật toán
+        if event.type == pygame.MOUSEWHEEL:
+            if self.algorithm_list_open:
+                mouse_position = pygame.mouse.get_pos()
+
+                if self.algorithm_dropdown_rect.collidepoint(
+                    mouse_position
+                ):
+                    maximum_scroll = max(
+                        0,
+                        len(ALGORITHMS)
+                        - self.visible_algorithm_count
+                    )
+
+                    self.algorithm_scroll -= event.y
+
+                    self.algorithm_scroll = max(
+                        0,
+                        min(
+                            self.algorithm_scroll,
+                            maximum_scroll
+                        )
+                    )
+
+            return
+
+        # Các xử lý bên dưới chỉ nhận chuột trái
         if (
             event.type != pygame.MOUSEBUTTONDOWN
             or event.button != 1
@@ -99,24 +134,40 @@ class LevelSelect:
             self.manager.switch_screen("main_menu")
             return
 
-        # Nhấn ô thuật toán để đóng/mở danh sách
+        # Nhấn ô thuật toán để mở hoặc đóng danh sách
         if self.btn_algo.collidepoint(mouse_position):
             self.algorithm_list_open = (
                 not self.algorithm_list_open
             )
             return
 
-        # Nếu danh sách đang mở, ưu tiên kiểm tra lựa chọn
+        # Chọn một thuật toán trong danh sách đang mở
         if self.algorithm_list_open:
-            for index, option_rect in enumerate(
-                self.algorithm_option_rects
+            if self.algorithm_dropdown_rect.collidepoint(
+                mouse_position
             ):
-                if option_rect.collidepoint(mouse_position):
-                    self.selected_algo_idx = index
-                    self.algorithm_list_open = False
-                    return
+                relative_y = (
+                    mouse_position[1]
+                    - self.algorithm_dropdown_rect.y
+                )
 
-            # Nhấn ra ngoài thì đóng danh sách
+                visible_index = (
+                    relative_y
+                    // self.algorithm_option_height
+                )
+
+                selected_index = (
+                    self.algorithm_scroll
+                    + visible_index
+                )
+
+                if selected_index < len(ALGORITHMS):
+                    self.selected_algo_idx = selected_index
+
+                self.algorithm_list_open = False
+                return
+
+            # Bấm ra ngoài danh sách thì đóng
             self.algorithm_list_open = False
             return
 
@@ -126,7 +177,7 @@ class LevelSelect:
                 self.selected_level = level_id
                 return
 
-        # Bắt đầu chạy thuật toán
+        # Bắt đầu chạy
         if self.btn_start.collidepoint(mouse_position):
             selected_algorithm = (
                 ALGORITHMS[self.selected_algo_idx]
@@ -138,7 +189,6 @@ class LevelSelect:
             )
 
             self.manager.switch_screen("gameplay")
-
     def update(self):
         pass
 
@@ -312,11 +362,41 @@ class LevelSelect:
 
         # Vẽ danh sách cuối cùng để nằm trên các nút khác
         if self.algorithm_list_open:
-            for index, option_rect in enumerate(
-                self.algorithm_option_rects
+            pygame.draw.rect(
+                screen,
+                (255, 255, 255),
+                self.algorithm_dropdown_rect
+            )
+
+            first_index = self.algorithm_scroll
+
+            last_index = min(
+                first_index + self.visible_algorithm_count,
+                len(ALGORITHMS)
+            )
+
+            visible_algorithms = ALGORITHMS[
+                first_index:last_index
+            ]
+
+            for visible_index, algorithm_name in enumerate(
+                visible_algorithms
             ):
+                real_index = (
+                    first_index + visible_index
+                )
+
+                option_rect = pygame.Rect(
+                    self.algorithm_dropdown_rect.x,
+                    self.algorithm_dropdown_rect.y
+                    + visible_index
+                    * self.algorithm_option_height,
+                    self.algorithm_dropdown_rect.width,
+                    self.algorithm_option_height
+                )
+
                 is_selected = (
-                    index == self.selected_algo_idx
+                    real_index == self.selected_algo_idx
                 )
 
                 background_color = (
@@ -345,7 +425,7 @@ class LevelSelect:
                 )
 
                 option_text = self.font.render(
-                    ALGORITHMS[index],
+                    algorithm_name,
                     True,
                     text_color
                 )
@@ -357,3 +437,18 @@ class LevelSelect:
                         option_rect.y + 6
                     )
                 )
+
+            scroll_hint = self.font.render(
+                "Cuộn chuột để xem thêm",
+                True,
+                (100, 100, 100)
+            )
+
+            screen.blit(
+                scroll_hint,
+                (
+                    self.algorithm_dropdown_rect.right
+                    - scroll_hint.get_width() - 8,
+                    self.algorithm_dropdown_rect.bottom + 4
+                )
+            )
