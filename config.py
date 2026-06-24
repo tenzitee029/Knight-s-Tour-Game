@@ -28,12 +28,14 @@ LEVELS = {
 }
 
 ALGORITHMS = [
-    "Depth-First Search (DFS) - Demo",
-    "Breadth-First Search (BFS) - Demo",
-    "Backtracking Search (CSP)",
+    "BFS (Uninformed)",
+    "DFS (Uninformed)",
+    "UCS (Uninformed)",
+    "IDS (Uninformed)",
+    "Backtracking (CSP)",
     "Forward Checking (CSP)",
-    "AC-3 Search (CSP)",
-    "Min-Conflicts (CSP)",
-    "Minimax (Adversarial)"
+    "AC3 (CSP)",
+    "Min-Conflicts (CSP)"
 ]
-AI_DELAY = 0.00001
+
+AI_DELAY = 0.2

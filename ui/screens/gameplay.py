@@ -2,7 +2,16 @@ import pygame
 import time
 from pathlib import Path
 from config import *
+<<<<<<< HEAD
 from algorithms.base_search import KnightTourSolver
+=======
+
+from algorithms.uninformed.bfs import BFSSolver
+from algorithms.uninformed.dfs import DFSSolver
+from algorithms.uninformed.ucs import UCSSolver
+from algorithms.uninformed.ids import IDSSolver
+
+>>>>>>> 8f13ded (Thêm nhóm thuật toán Uninformed)
 from algorithms.csp.backtracking import BacktrackingSolver
 from algorithms.csp.forward_checking import ForwardCheckingSolver
 from algorithms.csp.ac3 import AC3Solver
@@ -78,6 +87,45 @@ class Gameplay:
             self.solver_generator = self.solver.solve()
 
         # Truyền vị trí start_pos vừa random vào Solver
+<<<<<<< HEAD
+=======
+        elif "BFS" in algo_name:
+            self.solver = BFSSolver(
+                rows,
+                cols,
+                start_pos=self.start_pos,
+                obstacles=obstacles
+            )
+            self.solver_generator = self.solver.solve()
+
+        elif "DFS" in algo_name:
+            self.solver = DFSSolver(
+                rows,
+                cols,
+                start_pos=self.start_pos,
+                obstacles=obstacles
+            )
+            self.solver_generator = self.solver.solve()
+
+        elif "UCS" in algo_name:
+            self.solver = UCSSolver(
+                rows,
+                cols,
+                start_pos=self.start_pos,
+                obstacles=obstacles
+            )
+            self.solver_generator = self.solver.solve()
+
+        elif "IDS" in algo_name:
+            self.solver = IDSSolver(
+                rows,
+                cols,
+                start_pos=self.start_pos,
+                obstacles=obstacles
+            )
+            self.solver_generator = self.solver.solve()
+
+>>>>>>> 8f13ded (Thêm nhóm thuật toán Uninformed)
         elif "Backtracking" in algo_name:
             self.solver = BacktrackingSolver(
                 rows,
@@ -114,6 +162,7 @@ class Gameplay:
             )
             self.solver_generator = self.solver.solve()
 
+<<<<<<< HEAD
         else:
             # DFS và BFS hiện chỉ là thuật toán demo
             self.solver = KnightTourSolver(
@@ -127,6 +176,8 @@ class Gameplay:
                 self.solver_generator = self.solver.solve_dfs()
             else:
                 self.solver_generator = self.solver.solve_bfs() 
+=======
+>>>>>>> 8f13ded (Thêm nhóm thuật toán Uninformed)
         self.start_time = time.time()
         self.last_ai_move_time = time.time()
 
