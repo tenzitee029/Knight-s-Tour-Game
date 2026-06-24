@@ -27,5 +27,12 @@ LEVELS = {
     6: {"name": "Bàn Cờ Khuyết Góc", "rows": 8, "cols": 8, "obstacles": [(0,0), (0,7), (7,0), (7,7)]}
 }
 
-ALGORITHMS = ["Depth-First Search (DFS)", "Breadth-First Search (BFS)"]
+ALGORITHMS = [
+    "Depth-First Search (DFS) - Demo",
+    "Breadth-First Search (BFS) - Demo",
+    "Backtracking Search (CSP)",
+    "Forward Checking (CSP)",
+    "AC-3 Search (CSP)",
+    "Min-Conflicts (CSP)"
+]
 AI_DELAY = 0.00001

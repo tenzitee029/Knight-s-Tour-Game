@@ -3,6 +3,10 @@ import time
 from pathlib import Path
 from config import *
 from algorithms.base_search import KnightTourSolver
+from algorithms.csp.backtracking import BacktrackingSolver
+from algorithms.csp.forward_checking import ForwardCheckingSolver
+from algorithms.csp.ac3 import AC3Solver
+from algorithms.csp.min_conflicts import MinConflictsSolver
 from storage.database import save_match
 from PIL import Image, ImageDraw
 
@@ -64,13 +68,55 @@ class Gameplay:
             self.start_pos = valid_positions[0]
 
         # Truyền vị trí start_pos vừa random vào Solver
-        self.solver = KnightTourSolver(rows, cols, start_pos=self.start_pos, obstacles=obstacles)
-        
-        if "DFS" in algo_name:
-            self.solver_generator = self.solver.solve_dfs()
+        if "Backtracking" in algo_name:
+            self.solver = BacktrackingSolver(
+                rows,
+                cols,
+                start_pos=self.start_pos,
+                obstacles=obstacles
+            )
+            self.solver_generator = self.solver.solve()
+
+        elif "Forward Checking" in algo_name:
+            self.solver = ForwardCheckingSolver(
+                rows,
+                cols,
+                start_pos=self.start_pos,
+                obstacles=obstacles
+            )
+            self.solver_generator = self.solver.solve()
+
+        elif "AC-3" in algo_name:
+            self.solver = AC3Solver(
+                rows,
+                cols,
+                start_pos=self.start_pos,
+                obstacles=obstacles
+            )
+            self.solver_generator = self.solver.solve()
+
+        elif "Min-Conflicts" in algo_name:
+            self.solver = MinConflictsSolver(
+                rows,
+                cols,
+                start_pos=self.start_pos,
+                obstacles=obstacles
+            )
+            self.solver_generator = self.solver.solve()
+
         else:
-            self.solver_generator = self.solver.solve_bfs()
-            
+            # DFS và BFS hiện chỉ là thuật toán demo
+            self.solver = KnightTourSolver(
+                rows,
+                cols,
+                start_pos=self.start_pos,
+                obstacles=obstacles
+            )
+
+            if "DFS" in algo_name:
+                self.solver_generator = self.solver.solve_dfs()
+            else:
+                self.solver_generator = self.solver.solve_bfs() 
         self.start_time = time.time()
         self.last_ai_move_time = time.time()
 
