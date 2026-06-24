@@ -27,6 +27,7 @@ class Gameplay:
         
         self.board_rect = pygame.Rect(40, 60, 550, 550)
         self.btn_back = pygame.Rect(840, 620, 120, 40)
+        self.btn_skip = pygame.Rect(650, 620, 120, 40)
         
         self.reset_state()
 
@@ -165,6 +166,55 @@ class Gameplay:
                 self.manager.switch_screen("main_menu")
             elif self.btn_back.collidepoint(event.pos):
                 self.manager.switch_screen("level_select")
+            elif not self.is_finished and not self.show_popup and self.btn_skip.collidepoint(event.pos):
+                self.trigger_skip_calculation()
+
+    def trigger_skip_calculation(self):
+        """Hàm chạy ép luồng AI ngầm để hoàn thành ngay lập tức và sinh GIF"""
+        if not self.solver_generator:
+            return
+
+        print("⏩ Đang tua nhanh thuật toán để xuất GIF ngầm...")
+        try:
+            done = False
+            # Sử dụng vòng lặp chạy ngầm không dừng cho đến khi tìm thấy đích hoặc hết đường
+            while not done:
+                result = next(self.solver_generator)
+                self.path = result[0]
+                self.visited_nodes = result[1]
+                done = result[2]
+            
+            # Xử lý kết thúc giống y hệt khi chạy xong tự nhiên
+            self.finalize_game_and_save()
+
+        except StopIteration:
+            self.finalize_game_and_save()
+            
+    def finalize_game_and_save(self):
+        """Hàm bổ trợ dọn dẹp trạng thái, lưu DB và gọi xuất GIF"""
+        self.is_finished = True
+        
+        if "Minimax" in self.algo_name:
+            self.success = getattr(self.solver, "winner", None) == "MAX"
+        else:
+            self.success = (len(self.path) == self.solver.total_cells)
+
+        status_str = self.get_result_status()
+        self.show_popup = True
+
+        # Lưu lịch sử
+        from storage.database import save_match
+        self.current_match_id = save_match(
+            LEVELS[self.level_id]["name"],
+            self.algo_name,
+            len(self.path),
+            time.time() - self.start_time, # Tính toán lại tổng thời gian thực tế
+            status_str
+        )
+        
+        # Sinh GIF ngay lập tức mà không cần đợi
+        self.save_gifs_logic()
+
     def get_result_status(self):
         """Trả về nội dung kết quả để lưu lịch sử."""
 
@@ -194,18 +244,11 @@ class Gameplay:
             return
 
         current_time = time.time()
-        self.elapsed_time = (
-            current_time - self.start_time
-        )
+        self.elapsed_time = current_time - self.start_time
 
-        if (
-            self.solver_generator
-            and current_time - self.last_ai_move_time
-            >= AI_DELAY
-        ):
+        if (self.solver_generator and current_time - self.last_ai_move_time >= AI_DELAY):
             try:
                 result = next(self.solver_generator)
-
                 self.path = result[0]
                 self.visited_nodes = result[1]
                 done = result[2]
@@ -213,92 +256,12 @@ class Gameplay:
                 self.last_ai_move_time = current_time
 
                 if done:
-                    self.is_finished = True
-
-                    # Xác định thắng/thua riêng cho Minimax
-                    if "Minimax" in self.algo_name:
-                        self.success = getattr(
-                            self.solver,
-                            "winner",
-                            None
-                        ) == "MAX"
-
-                    # Các thuật toán khác thành công khi đi đủ ô
-                    else:
-                        self.success = (
-                            len(self.path)
-                            == self.solver.total_cells
-                        )
-
-                    # Chuỗi này được lưu vào lịch sử
-                    status_str = (
-                        self.get_result_status()
-                    )
-
-                    self.show_popup = True
-
-                    # Lưu kết quả trận đấu
-                    self.current_match_id = save_match(
-                        LEVELS[self.level_id]["name"],
-                        self.algo_name,
-                        len(self.path),
-                        self.elapsed_time,
-                        status_str
-                    )
-
-                    print(
-                        "Thuật toán kết thúc: "
-                        f"{status_str}. "
-                        "Bắt đầu tạo GIF..."
-                    )
-
-                    # MAX hay MIN thắng đều tạo GIF
-                    self.save_gifs_logic()
+                    # Gọi hàm hoàn tất xử lý tự động
+                    self.finalize_game_and_save()
 
             except StopIteration:
-                self.is_finished = True
-                self.show_popup = True
+                self.finalize_game_and_save()
 
-                if "Minimax" in self.algo_name:
-                    winner = getattr(
-                        self.solver,
-                        "winner",
-                        None
-                    )
-
-                    # Nếu generator dừng mà chưa ghi winner,
-                    # xem như MAX đã hết đường và MIN thắng
-                    if winner is None:
-                        self.solver.winner = "MIN"
-
-                    self.success = (
-                        self.solver.winner == "MAX"
-                    )
-
-                else:
-                    self.success = (
-                        len(self.path)
-                        == self.solver.total_cells
-                    )
-
-                status_str = self.get_result_status()
-
-                self.current_match_id = save_match(
-                    LEVELS[self.level_id]["name"],
-                    self.algo_name,
-                    len(self.path),
-                    self.elapsed_time,
-                    status_str
-                )
-
-                print(
-                    "Generator đã dừng: "
-                    f"{status_str}. "
-                    "Bắt đầu tạo GIF..."
-                )
-
-                # Trường hợp generator dừng vẫn tạo GIF
-                self.save_gifs_logic()
     def draw(self, screen):
         screen.fill(COLOR_BG)
         lvl_cfg = LEVELS[self.level_id]
@@ -383,6 +346,11 @@ class Gameplay:
             )
         pygame.draw.rect(screen, (231, 76, 60), self.btn_back, border_radius=5)
         screen.blit(self.font.render("Dừng chơi", True, (255,255,255)), (self.btn_back.x + 22, self.btn_back.y + 8))
+
+        # Vẽ nút Skip
+        if not self.is_finished and not self.show_popup:
+            pygame.draw.rect(screen, (52, 152, 219), self.btn_skip, border_radius=5)
+            screen.blit(self.font.render("Tua nhanh", True, (255,255,255)), (self.btn_skip.x + 22, self.btn_skip.y + 8))
 
         # Thực thi xuất file ngay khi biến này được kích hoạt ở update()
         if self.should_save_gifs:
