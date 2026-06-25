@@ -8,6 +8,10 @@ from algorithms.uninformed.dfs import DFSSolver
 from algorithms.uninformed.ucs import UCSSolver
 from algorithms.uninformed.ids import IDSSolver
 
+from algorithms.informed.gbfs import GBFSSolver
+from algorithms.informed.astar import AStarSolver
+from algorithms.informed.ida_star import IDAStarSolver
+
 from algorithms.csp.backtracking import BacktrackingSolver
 from algorithms.csp.forward_checking import ForwardCheckingSolver
 from algorithms.csp.ac3 import AC3Solver
@@ -129,6 +133,33 @@ class Gameplay:
             )
             self.solver_generator = self.solver.solve()
 
+        elif "GBFS" in algo_name:
+            self.solver = GBFSSolver(
+                rows,
+                cols,
+                start_pos=self.start_pos,
+                obstacles=obstacles
+            )
+            self.solver_generator = self.solver.solve()
+
+        elif "IDA*" in algo_name:
+            self.solver = IDAStarSolver(
+                rows,
+                cols,
+                start_pos=self.start_pos,
+                obstacles=obstacles
+            )
+            self.solver_generator = self.solver.solve()
+
+        elif "A*" in algo_name:
+            self.solver = AStarSolver(
+                rows,
+                cols,
+                start_pos=self.start_pos,
+                obstacles=obstacles
+            )
+            self.solver_generator = self.solver.solve()
+
         elif "Backtracking" in algo_name:
             self.solver = BacktrackingSolver(
                 rows,
@@ -147,7 +178,7 @@ class Gameplay:
             )
             self.solver_generator = self.solver.solve()
 
-        elif "AC-3" in algo_name:
+        elif "AC3" in algo_name or "AC-3" in algo_name:
             self.solver = AC3Solver(
                 rows,
                 cols,
