@@ -36,7 +36,8 @@ ALGORITHMS = [
     "Forward Checking (CSP)",
     "AC3 (CSP)",
     "Min-Conflicts (CSP)",
-    "Minimax (Adversarial)"
+    "Minimax (Adversarial)",
+    "Expectimax (Adversarial)"
 ]
 
 AI_DELAY = 0.2

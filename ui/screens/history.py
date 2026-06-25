@@ -124,21 +124,37 @@ class HistoryScreen:
                 "AI MAX thắng"
             }
 
+            status = match["status"]
+
+            is_successful = (
+                status in successful_statuses
+                or status.startswith("AI MAX thắng ở trận")
+            )
+
             status_color = (
                 (46, 204, 113)
-                if match["status"] in successful_statuses
+                if is_successful
                 else (231, 76, 60)
             )
+
+
             screen.blit(self.font.render(match["status"], True, status_color), (660, y_offset))
             
             # --- TẠO VÀ VẼ NÚT TẢI GIF ---
             # 1. Nút tải Đường đi (chỉ bật nếu Thành công)
             btn_path = pygame.Rect(760, y_offset - 2, 90, 24)
-            if match["status"] in {
-                "Thành công",
-                "AI MAX thắng",
-                "AI MIN thắng"
-            }:
+            if (
+                match["status"] in {
+                    "Thành công",
+                    "AI MAX thắng",
+                    "AI MIN thắng"
+                }
+                or match["status"].startswith(
+                    "AI MAX thắng ở trận"
+                )
+                or match["status"]
+                    == "AI MAX không thắng sau 100 trận"
+            ):
                 pygame.draw.rect(screen, (52, 152, 219), btn_path, border_radius=4)
                 screen.blit(self.font.render("Đường đi", True, (255,255,255)), (775, y_offset))
                 self.download_buttons.append((btn_path, match["id"], "path"))

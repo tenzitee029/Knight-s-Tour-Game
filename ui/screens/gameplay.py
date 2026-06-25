@@ -13,6 +13,7 @@ from algorithms.csp.forward_checking import ForwardCheckingSolver
 from algorithms.csp.ac3 import AC3Solver
 from algorithms.csp.min_conflicts import MinConflictsSolver
 from algorithms.adversarial.minimax import MinimaxSolver
+from algorithms.adversarial.expectimax import ExpectimaxSolver
 
 from storage.database import save_match
 from PIL import Image, ImageDraw
@@ -83,7 +84,14 @@ class Gameplay:
             )
 
             self.solver_generator = self.solver.solve()
-
+        elif "Expectimax" in algo_name:
+            self.solver = ExpectimaxSolver(
+                rows,
+                cols,
+                start_pos=self.start_pos,
+                obstacles=obstacles
+            )
+            self.solver_generator = self.solver.solve()
         # Truyền vị trí start_pos vào Solver
         elif "BFS" in algo_name:
             self.solver = BFSSolver(
@@ -191,48 +199,56 @@ class Gameplay:
             self.finalize_game_and_save()
             
     def finalize_game_and_save(self):
-        """Hàm bổ trợ dọn dẹp trạng thái, lưu DB và gọi xuất GIF"""
+        """Kết thúc trận, lưu lịch sử và tạo GIF."""
+
         self.is_finished = True
-        
+
+        # Xác định kết quả theo từng nhóm thuật toán
         if "Minimax" in self.algo_name:
-            self.success = getattr(self.solver, "winner", None) == "MAX"
+            self.success = self.solver.max_won
+
+        elif "Expectimax" in self.algo_name:
+            self.success = self.solver.max_won
+
         else:
-            self.success = (len(self.path) == self.solver.total_cells)
+            self.success = (
+                len(self.path)
+                == self.solver.total_cells
+            )
 
         status_str = self.get_result_status()
         self.show_popup = True
 
-        # Lưu lịch sử
-        from storage.database import save_match
+        # Lưu kết quả vào lịch sử
         self.current_match_id = save_match(
             LEVELS[self.level_id]["name"],
             self.algo_name,
             len(self.path),
-            time.time() - self.start_time, # Tính toán lại tổng thời gian thực tế
+            time.time() - self.start_time,
             status_str
         )
-        
-        # Sinh GIF ngay lập tức mà không cần đợi
-        self.save_gifs_logic()
 
+        # Tạo GIF đường đi và quá trình
+        self.save_gifs_logic()
     def get_result_status(self):
         """Trả về nội dung kết quả để lưu lịch sử."""
 
         if "Minimax" in self.algo_name:
-            winner = getattr(
-                self.solver,
-                "winner",
-                None
-            )
+            if self.solver.max_won:
+                return (
+                    f"AI MAX thắng ở trận "
+                    f"{self.solver.winning_game}"
+                )
 
-            if winner == "MAX":
-                return "AI MAX thắng"
+            return "AI MAX không thắng sau 100 trận"
+        if "Expectimax" in self.algo_name:
+            if self.solver.max_won:
+                return (
+                    f"AI MAX thắng ở trận "
+                    f"{self.solver.winning_game}"
+                )
 
-            if winner == "MIN":
-                return "AI MIN thắng"
-
-            return "Minimax chưa xác định kết quả"
-
+            return "AI MAX không thắng sau 100 trận"
         return (
             "Thành công"
             if self.success
@@ -282,9 +298,12 @@ class Gameplay:
                 rect = pygame.Rect(self.board_rect.x + c * cell_w, self.board_rect.y + r * cell_h, cell_w, cell_h)
                 
                 if (r, c) in dynamic_obstacles:
-                    # Ô do AI MIN khóa
-                    color = (231, 76, 60)
-
+                    if "Expectimax" in self.algo_name:
+                        # Vật cản do CHANCE tạo: màu tím
+                        color = (155, 89, 182)
+                    else:
+                        # Vật cản do AI MIN tạo: màu đỏ
+                        color = (231, 76, 60)
                 elif (r, c) in lvl_cfg["obstacles"]:
                     # Vật cản có sẵn
                     color = (44, 62, 80)
@@ -379,19 +398,24 @@ class Gameplay:
                 popup_rect,
                 border_radius=15
             )
-
-            if "Minimax" in self.algo_name:
-                winner = getattr(
-                    self.solver,
-                    "winner",
-                    "MIN"
-                )
-
-                if winner == "MAX":
+            if "Expectimax" in self.algo_name:
+                if self.solver.max_won:
                     title_text = "AI MAX THẮNG!"
                     title_color = (46, 204, 113)
                 else:
-                    title_text = "AI MIN THẮNG!"
+                    title_text = (
+                        "AI MAX KHÔNG THẮNG SAU 100 TRẬN!"
+                    )
+                    title_color = (231, 76, 60)
+
+            elif "Minimax" in self.algo_name:
+                if self.solver.max_won:
+                    title_text = "AI MAX THẮNG!"
+                    title_color = (46, 204, 113)
+                else:
+                    title_text = (
+                        "AI MAX KHÔNG THẮNG SAU 100 TRẬN!"
+                    )
                     title_color = (231, 76, 60)
 
             else:
@@ -407,11 +431,6 @@ class Gameplay:
                     else (231, 76, 60)
                 )
 
-            title_color = (
-                (46, 204, 113)
-                if self.success
-                else (231, 76, 60)
-            )
 
             title_surface = self.font_bold.render(
                 title_text,
@@ -434,61 +453,88 @@ class Gameplay:
                 f"Tổng số bước nhảy: {len(self.path)}",
                 f"Tổng số Node AI duyệt: {self.visited_nodes}"
             ]
-
-            # Thông tin riêng của Minimax
-            if "Minimax" in self.algo_name:
-                blocked_cells = sorted(
-                    self.solver.dynamic_obstacles
+            # Thông tin riêng của Expectimax
+            if "Expectimax" in self.algo_name:
+                winning_game = getattr(
+                    self.solver,
+                    "winning_game",
+                    None
                 )
-
-                max_target = self.solver.max_win_target
-
-                remaining_to_win = max(
-                    0,
-                    max_target - len(self.path)
-                )
-
-                playable_remaining = max(
-                    0,
-                    self.solver.total_cells
-                    - len(blocked_cells)
-                    - len(self.path)
-                )
-
-                current_position = self.path[-1]
-
-                possible_moves = self.solver.get_valid_moves(
-                    current_position,
-                    self.path,
-                    self.solver.dynamic_obstacles
-                )
-
-                # Đổi tọa độ từ 0-based sang 1-based để dễ đọc
-                shown_moves = [
-                    f"({row + 1},{col + 1})"
-                    for row, col in possible_moves
-                ]
-
-
-
-                moves_text = (
-                    ", ".join(shown_moves)
-                    if shown_moves
-                    else "Không còn ô hợp lệ"
-                )
-
-
 
                 information_lines.extend([
                     (
-                        f"Mục tiêu MAX: {max_target}/"
-                        f"{self.solver.total_cells} ô (50%)"
+                        f"Số trận đã chơi: "
+                        f"{self.solver.game_count}/"
+                        f"{self.solver.MAX_GAMES}"
                     ),
-                    f"Ô MAX đã đi: {len(self.path)}/{max_target}",
-                    f"Còn cần đi để thắng: {remaining_to_win}",
-                    f"Số ô còn chơi được: {playable_remaining}",
-                    f"Ô có thể đi tiếp: {moves_text}",
-                    f"Ô MIN đã chặn: {len(blocked_cells)}",
+                    (
+                        f"Trận MAX thắng: "
+                        f"{winning_game if winning_game else '--'}"
+                    ),
+                    (
+                        f"Mục tiêu MAX: "
+                        f"{self.solver.max_win_target}/"
+                        f"{self.solver.total_cells} ô"
+                    ),
+                    (
+                        f"Số ô đã đi ở trận kết quả: "
+                        f"{len(self.path)}/"
+                        f"{self.solver.max_win_target}"
+                    ),
+                    (
+                        f"Số ô CHANCE đã khóa: "
+                        f"{len(self.solver.dynamic_obstacles)}"
+                    )
+                ])
+            # Thông tin riêng của Minimax
+            elif "Minimax" in self.algo_name:
+                game_count = getattr(
+                    self.solver,
+                    "game_count",
+                    1
+                )
+
+                winning_game = getattr(
+                    self.solver,
+                    "winning_game",
+                    None
+                )
+
+                max_games = getattr(
+                    self.solver,
+                    "MAX_GAMES",
+                    100
+                )
+
+                target = getattr(
+                    self.solver,
+                    "max_win_target",
+                    0
+                )
+
+                blocked_count = len(
+                    getattr(
+                        self.solver,
+                        "dynamic_obstacles",
+                        set()
+                    )
+                )
+
+                information_lines.extend([
+                    f"Số trận đã chơi: {game_count}/{max_games}",
+                    (
+                        "Trận MAX thắng: "
+                        f"{winning_game if winning_game else '--'}"
+                    ),
+                    (
+                        f"Mục tiêu MAX: "
+                        f"{target}/{self.solver.total_cells} ô"
+                    ),
+                    (
+                        f"Số ô đã đi ở trận kết quả: "
+                        f"{len(self.path)}/{target}"
+                    ),
+                    f"Số ô MIN đã khóa: {blocked_count}"
                 ])
 
             # Vẽ từng dòng thông tin
@@ -578,8 +624,13 @@ class Gameplay:
                         x2, y2 = x1 + cell_w, y1 + cell_h
                         
                         if (r, c) in dynamic_obstacles:
-                            color = (231, 76, 60)  # Ô AI MIN chặn
+                            if "Expectimax" in self.algo_name:
+                                color = (155, 89, 182)
+                            else:
+                                color = (231, 76, 60)
 
+                        elif (r, c) in obstacles:
+                            color = (44, 62, 80)
                         elif (r, c) in obstacles:
                             color = (44, 62, 80)   # Vật cản có sẵn
                         elif (r, c) == curr_pos:

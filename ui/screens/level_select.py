@@ -29,6 +29,7 @@ class LevelSelect:
 
         # Trạng thái đóng/mở danh sách thuật toán
         self.algorithm_list_open = False
+        self.show_adversarial_rules = False
         self.algorithm_scroll = 0
         self.visible_algorithm_count = 5
         self.algorithm_option_height = 36
@@ -91,7 +92,20 @@ class LevelSelect:
             100,
             40
         )
+        # Hai nút trong bảng luật Expectimax
+        self.btn_rules_confirm = pygame.Rect(
+            340,
+            540,
+            150,
+            42
+        )
 
+        self.btn_rules_cancel = pygame.Rect(
+            510,
+            540,
+            150,
+            42
+        )
     def handle_event(self, event):
         # Cuộn danh sách thuật toán
         if event.type == pygame.MOUSEWHEEL:
@@ -127,6 +141,33 @@ class LevelSelect:
             return
 
         mouse_position = event.pos
+        # Khi bảng luật đang mở, chỉ xử lý hai nút trong bảng
+        if self.show_adversarial_rules:
+            if self.btn_rules_confirm.collidepoint(
+                mouse_position
+            ):
+                selected_algorithm = (
+                    ALGORITHMS[self.selected_algo_idx]
+                )
+
+                self.show_adversarial_rules = False
+
+                self.manager.screens["gameplay"].setup_game(
+                    self.selected_level,
+                    selected_algorithm
+                )
+
+                self.manager.switch_screen("gameplay")
+                return
+
+            if self.btn_rules_cancel.collidepoint(
+                mouse_position
+            ):
+                self.show_adversarial_rules = False
+                return
+
+            # Không cho bấm xuyên qua bảng luật
+            return
 
         # Nút quay lại
         if self.btn_back.collidepoint(mouse_position):
@@ -183,6 +224,15 @@ class LevelSelect:
                 ALGORITHMS[self.selected_algo_idx]
             )
 
+            # Expectimax phải xem luật trước khi chạy
+            if (
+                "Expectimax" in selected_algorithm
+                or "Minimax" in selected_algorithm
+            ):
+                self.algorithm_list_open = False
+                self.show_adversarial_rules = True
+                return
+            # Những thuật toán khác chạy ngay
             self.manager.screens["gameplay"].setup_game(
                 self.selected_level,
                 selected_algorithm
@@ -450,5 +500,147 @@ class LevelSelect:
                     self.algorithm_dropdown_rect.right
                     - scroll_hint.get_width() - 8,
                     self.algorithm_dropdown_rect.bottom + 4
+                )
+            )
+        # Bảng luật Minimax hoặc Expectimax
+        # Phần này phải nằm bên trong hàm draw()
+        if self.show_adversarial_rules:
+            selected_algorithm = (
+                ALGORITHMS[self.selected_algo_idx]
+            )
+
+            # Tạo lớp nền tối
+            overlay = pygame.Surface(
+                (1000, 700),
+                pygame.SRCALPHA
+            )
+
+            overlay.fill((0, 0, 0, 180))
+            screen.blit(overlay, (0, 0))
+
+            # Khung màu trắng chứa luật
+            rules_rect = pygame.Rect(
+                220,
+                60,
+                560,
+                570
+            )
+
+            pygame.draw.rect(
+                screen,
+                (255, 255, 255),
+                rules_rect,
+                border_radius=14
+            )
+
+            # Chọn nội dung luật theo thuật toán
+            if "Minimax" in selected_algorithm:
+                rules_title = "LUẬT CHƠI MINIMAX"
+
+                rules = [
+                    "1. AI MAX điều khiển quân mã.",
+                    "2. AI MIN có nhiệm vụ khóa đường đi.",
+                    "3. MIN hành động sau mỗi 2 lượt MAX.",
+                    "4. Mỗi lượt MIN chỉ khóa một ô.",
+                    "5. MIN không khóa nước cuối của MAX.",
+                    "6. MAX thắng khi đạt ít nhất 50% số ô.",
+                    "7. Nếu MAX thua, tự động chơi trận mới.",
+                    "8. Dừng khi MAX thắng hoặc đủ 100 trận."
+                ]
+
+            else:
+                rules_title = "LUẬT CHƠI EXPECTIMAX"
+
+                rules = [
+                    "1. AI MAX điều khiển quân mã.",
+                    "2. CHANCE xuất hiện sau mỗi lượt MAX.",
+                    "3. 70% xác suất không khóa ô.",
+                    "4. 15% xác suất khóa một ô.",
+                    "5. 15% xác suất khóa hai ô.",
+                    "6. CHANCE luôn chừa ít nhất một nước.",
+                    "7. MAX thắng khi đạt ít nhất 50% số ô.",
+                    "8. Nếu MAX thua, tự động chơi trận mới.",
+                    "9. Dừng khi MAX thắng hoặc đủ 100 trận."
+                ]
+
+            # Vẽ tiêu đề
+            title_text = self.font_title.render(
+                rules_title,
+                True,
+                COLOR_TEXT
+            )
+
+            screen.blit(
+                title_text,
+                (
+                    rules_rect.centerx
+                    - title_text.get_width() // 2,
+                    rules_rect.y + 30
+                )
+            )
+
+            # Vẽ từng dòng luật
+            start_y = rules_rect.y + 100
+
+            for index, rule in enumerate(rules):
+                rule_surface = self.font.render(
+                    rule,
+                    True,
+                    COLOR_TEXT
+                )
+
+                screen.blit(
+                    rule_surface,
+                    (
+                        rules_rect.x + 40,
+                        start_y + index * 35
+                    )
+                )
+
+            # Vẽ nút Đồng ý chạy
+            pygame.draw.rect(
+                screen,
+                (46, 204, 113),
+                self.btn_rules_confirm,
+                border_radius=6
+            )
+
+            confirm_text = self.font.render(
+                "Đồng ý chạy",
+                True,
+                (255, 255, 255)
+            )
+
+            screen.blit(
+                confirm_text,
+                (
+                    self.btn_rules_confirm.centerx
+                    - confirm_text.get_width() // 2,
+                    self.btn_rules_confirm.centery
+                    - confirm_text.get_height() // 2
+                )
+            )
+
+            # Vẽ nút Hủy
+            pygame.draw.rect(
+                screen,
+                (180, 180, 180),
+                self.btn_rules_cancel,
+                border_radius=6
+            )
+
+            cancel_text = self.font.render(
+                "Hủy",
+                True,
+                (0, 0, 0)
+            )
+
+            screen.blit(
+                cancel_text,
+                (
+                    self.btn_rules_cancel.centerx
+                    - cancel_text.get_width() // 2,
+                    self.btn_rules_cancel.centery
+                    - cancel_text.get_height() // 2
                 )
             )

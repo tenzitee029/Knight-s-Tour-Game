@@ -7,9 +7,12 @@ from .common import AdversarialBaseSolver
 class MinimaxSolver(AdversarialBaseSolver):
     """
     AI MAX điều khiển quân mã.
-    AI MIN khóa một nước đi sau mỗi 3 lượt của MAX.
+    AI MIN khóa một nước đi sau mỗi 2 lượt MAX.
+    Nếu MAX thua, tự bắt đầu trận mới.
     """
 
+    MAX_GAMES = 100
+    SEARCH_DEPTH = 3
     def __init__(
         self,
         rows,
@@ -24,13 +27,19 @@ class MinimaxSolver(AdversarialBaseSolver):
             obstacles
         )
 
-        # MAX thắng khi đi được ít nhất 70% số ô ban đầu
+        # MAX thắng khi đạt ít nhất 50% số ô
         self.max_win_target = math.ceil(
             self.total_cells * 0.5
         )
 
-        self.winner = None
+        self.game_count = 0
+        self.winning_game = None
         self.max_won = False
+        self.winner = None
+
+        self.best_path = [self.start_pos]
+        self.best_obstacles = set()
+        self.search_nodes = 0
 
     def minimax(
         self,
@@ -40,6 +49,8 @@ class MinimaxSolver(AdversarialBaseSolver):
         maximizing_player,
         max_move_count
     ):
+        self.search_nodes += 1
+
         current_position = path[-1]
 
         valid_moves = self.get_valid_moves(
@@ -47,6 +58,9 @@ class MinimaxSolver(AdversarialBaseSolver):
             path,
             dynamic_obstacles
         )
+
+        if len(path) >= self.max_win_target:
+            return 1_000_000
 
         if depth == 0 or not valid_moves:
             return self.evaluate_state(
@@ -75,8 +89,8 @@ class MinimaxSolver(AdversarialBaseSolver):
 
             return best_score
 
-        # Chưa đủ 3 lượt MAX thì MIN bỏ lượt
-        if max_move_count % 3 != 0:
+        # MIN chỉ hành động sau mỗi 2 lượt MAX
+        if max_move_count % 2 != 0:
             return self.minimax(
                 path,
                 dynamic_obstacles,
@@ -85,7 +99,7 @@ class MinimaxSolver(AdversarialBaseSolver):
                 max_move_count
             )
 
-        # Chỉ còn một nước thì MIN không được khóa
+        # MIN không được khóa nước cuối cùng
         if len(valid_moves) <= 1:
             return self.minimax(
                 path,
@@ -98,9 +112,7 @@ class MinimaxSolver(AdversarialBaseSolver):
         worst_score = float("inf")
 
         for lock_position in valid_moves:
-            new_obstacles = set(
-                dynamic_obstacles
-            )
+            new_obstacles = set(dynamic_obstacles)
             new_obstacles.add(lock_position)
 
             score = self.minimax(
@@ -130,7 +142,9 @@ class MinimaxSolver(AdversarialBaseSolver):
             path,
             self.dynamic_obstacles
         )
+
         random.shuffle(valid_moves)
+
         best_moves = []
         best_score = float("-inf")
 
@@ -140,7 +154,7 @@ class MinimaxSolver(AdversarialBaseSolver):
             score = self.minimax(
                 new_path,
                 set(self.dynamic_obstacles),
-                depth=2,
+                depth=self.SEARCH_DEPTH,
                 maximizing_player=False,
                 max_move_count=max_move_count + 1
             )
@@ -152,18 +166,19 @@ class MinimaxSolver(AdversarialBaseSolver):
             elif score == best_score:
                 best_moves.append(next_position)
 
-            if not best_moves:
-                return None
+        # Phải nằm ngoài vòng for
+        if not best_moves:
+            return None
 
-            return random.choice(best_moves)
+        return random.choice(best_moves)
 
     def choose_min_block(
         self,
         path,
         max_move_count
     ):
-        # MIN chỉ hành động sau mỗi 3 lượt MAX
-        if max_move_count % 3 != 0:
+        # MIN chỉ hành động sau mỗi 2 lượt MAX
+        if max_move_count % 2 != 0:
             return None
 
         current_position = path[-1]
@@ -173,7 +188,9 @@ class MinimaxSolver(AdversarialBaseSolver):
             path,
             self.dynamic_obstacles
         )
+
         random.shuffle(candidates)
+
         # MIN không được khóa nước cuối cùng
         if len(candidates) <= 1:
             return None
@@ -190,7 +207,7 @@ class MinimaxSolver(AdversarialBaseSolver):
             score = self.minimax(
                 path,
                 test_obstacles,
-                depth=1,
+                depth=self.SEARCH_DEPTH,
                 maximizing_player=True,
                 max_move_count=max_move_count
             )
@@ -202,65 +219,105 @@ class MinimaxSolver(AdversarialBaseSolver):
             elif score == worst_score:
                 worst_blocks.append(lock_position)
 
-            if not worst_blocks:
-                return None
+        # Phải nằm ngoài vòng for
+        if not worst_blocks:
+            return None
 
-            return random.choice(worst_blocks)
+        return random.choice(worst_blocks)
 
-    def solve(self):
-        path = [self.start_pos]
-        visited_nodes = 0
-        max_move_count = 0
-
-        self.winner = None
-        self.max_won = False
-        self.dynamic_obstacles.clear()
-
-        while True:
-            # Lượt AI MAX
-            max_move = self.choose_max_move(
-                path,
-                max_move_count
+    def save_best_result(self, path):
+        if len(path) > len(self.best_path):
+            self.best_path = path.copy()
+            self.best_obstacles = (
+                self.dynamic_obstacles.copy()
             )
 
-            visited_nodes += 1
+    def solve(self):
+        self.game_count = 0
+        self.winning_game = None
+        self.max_won = False
+        self.winner = None
 
-            # MAX hết đường trước khi đạt 70%
-            if max_move is None:
-                self.winner = "MIN"
-                self.max_won = False
+        self.best_path = [self.start_pos]
+        self.best_obstacles = set()
+        self.search_nodes = 0
 
-                yield path.copy(), visited_nodes, True
-                return
+        while self.game_count < self.MAX_GAMES:
+            self.game_count += 1
 
-            path.append(max_move)
-            max_move_count += 1
+            path = [self.start_pos]
+            max_move_count = 0
+            self.dynamic_obstacles.clear()
 
-            yield path.copy(), visited_nodes, False
+            # Bắt đầu trận mới
+            yield (
+                path.copy(),
+                self.search_nodes,
+                False
+            )
 
-            # MAX đạt mục tiêu 70%
-            if len(path) >= self.max_win_target:
-                self.winner = "MAX"
-                self.max_won = True
-
-                yield path.copy(), visited_nodes, True
-                return
-
-            # MIN chỉ được xét sau mỗi 3 lượt MAX
-            if max_move_count % 3 == 0:
-                min_block = self.choose_min_block(
+            while True:
+                max_move = self.choose_max_move(
                     path,
                     max_move_count
                 )
 
-                if min_block is not None:
-                    self.dynamic_obstacles.add(
-                        min_block
-                    )
-                    visited_nodes += 1
+                # MAX thua trận hiện tại
+                if max_move is None:
+                    self.save_best_result(path)
+                    break
+
+                path.append(max_move)
+                max_move_count += 1
+                self.save_best_result(path)
+
+                yield (
+                    path.copy(),
+                    self.search_nodes,
+                    False
+                )
+
+                # MAX đạt mục tiêu 50%
+                if len(path) >= self.max_win_target:
+                    self.max_won = True
+                    self.winner = "MAX"
+                    self.winning_game = self.game_count
 
                     yield (
                         path.copy(),
-                        visited_nodes,
-                        False
+                        self.search_nodes,
+                        True
                     )
+                    return
+
+                # MIN chỉ khóa sau mỗi 2 lượt MAX
+                if max_move_count % 2 == 0:
+                    min_block = self.choose_min_block(
+                        path,
+                        max_move_count
+                    )
+
+                    if min_block is not None:
+                        self.dynamic_obstacles.add(
+                            min_block
+                        )
+
+                        yield (
+                            path.copy(),
+                            self.search_nodes,
+                            False
+                        )
+
+        # Không thắng sau 100 trận: dùng trận tốt nhất
+        self.max_won = False
+        self.winner = None
+
+        self.dynamic_obstacles = (
+            self.best_obstacles.copy()
+        )
+
+        yield (
+            self.best_path.copy(),
+            self.search_nodes,
+            True
+        )

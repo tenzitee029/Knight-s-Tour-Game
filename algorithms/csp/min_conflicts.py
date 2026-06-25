@@ -5,7 +5,7 @@ from .common import CSPBaseSolver
 
 class MinConflictsSolver(CSPBaseSolver):
     """Giải Knight's Tour bằng Min-Conflicts."""
-    MAX_NODES = 50000
+    MAX_NODES = 100000
 
 
     def is_knight_move(self, first_position, second_position):

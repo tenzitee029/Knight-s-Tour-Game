@@ -29,12 +29,6 @@ class AdversarialBaseSolver:
             rows * cols - len(self.static_obstacles)
         )
 
-        # MIN chỉ được khóa tối đa 20% số ô
-        self.max_dynamic_obstacles = max(
-            1,
-            int(self.total_cells * 0.2)
-        )
-
     def is_inside_board(self, position):
         row, col = position
 
