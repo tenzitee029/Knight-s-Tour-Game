@@ -12,6 +12,9 @@ from algorithms.informed.gbfs import GBFSSolver
 from algorithms.informed.astar import AStarSolver
 from algorithms.informed.ida_star import IDAStarSolver
 
+from algorithms.local_search.simple_hill_climbing import SimpleHillClimbingSolver
+from algorithms.local_search.stochastic_hill_climbing import StochasticHillClimbingSolver
+
 from algorithms.csp.backtracking import BacktrackingSolver
 from algorithms.csp.forward_checking import ForwardCheckingSolver
 from algorithms.csp.ac3 import AC3Solver
@@ -153,6 +156,24 @@ class Gameplay:
 
         elif "A*" in algo_name:
             self.solver = AStarSolver(
+                rows,
+                cols,
+                start_pos=self.start_pos,
+                obstacles=obstacles
+            )
+            self.solver_generator = self.solver.solve()
+
+        elif "Simple Hill Climbing" in algo_name:
+            self.solver = SimpleHillClimbingSolver(
+                rows,
+                cols,
+                start_pos=self.start_pos,
+                obstacles=obstacles
+            )
+            self.solver_generator = self.solver.solve()
+
+        elif "Stochastic Hill Climbing" in algo_name:
+            self.solver = StochasticHillClimbingSolver(
                 rows,
                 cols,
                 start_pos=self.start_pos,

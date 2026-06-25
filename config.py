@@ -35,6 +35,8 @@ ALGORITHMS = [
     "GBFS (Informed)",
     "A* (Informed)",
     "IDA* (Informed)",
+    "Simple Hill Climbing (Local Search)",
+    "Stochastic Hill Climbing (Local Search)",
     "Backtracking (CSP)",
     "Forward Checking (CSP)",
     "AC3 (CSP)",
