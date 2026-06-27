@@ -18,13 +18,26 @@ COLOR_VISITED = (100, 149, 237)   # Ô đã duyệt qua (Cornflower Blue)
 COLOR_CURRENT = (255, 215, 0)     # Vị trí hiện tại của Mã (Gold)
 
 # Cấu hình Level (Kích thước, Tên, Vật cản nếu có)
+# Cấu hình Level (Rút gọn từ 6 xuống còn 3 màn chơi)
 LEVELS = {
-    1: {"name": "Khởi Động (5x5)", "rows": 5, "cols": 5, "obstacles": []},
-    2: {"name": "Tiêu Chuẩn (6x6)", "rows": 6, "cols": 6, "obstacles": []},
-    3: {"name": "Đại Kiện Tướng (8x8)", "rows": 8, "cols": 8, "obstacles": []},
-    4: {"name": "Mê Cung Số (10x10)", "rows": 10, "cols": 10, "obstacles": []},
-    5: {"name": "Địa Hình Hiểm Trở", "rows": 8, "cols": 8, "obstacles": [(2,2), (2,5), (5,2), (5,5)]},
-    6: {"name": "Bàn Cờ Khuyết Góc", "rows": 8, "cols": 8, "obstacles": [(0,0), (0,7), (7,0), (7,7)]}
+    1: {
+        "name": "Khởi Động (5x5)", 
+        "rows": 5, 
+        "cols": 5, 
+        "obstacles": []
+    },
+    2: {
+        "name": "Tiêu Chuẩn (6x6)", 
+        "rows": 6, 
+        "cols": 6, 
+        "obstacles": []
+    },
+    3: {
+        "name": "Thử Thách (6x6 - Vật Cản)", 
+        "rows": 6, 
+        "cols": 6, 
+        "obstacles": [(1, 1), (1, 4), (4, 1), (4, 4)] 
+    }
 }
 
 ALGORITHMS = [
