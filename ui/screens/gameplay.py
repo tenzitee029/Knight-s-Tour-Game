@@ -12,6 +12,10 @@ from algorithms.informed.gbfs import GBFSSolver
 from algorithms.informed.astar import AStarSolver
 from algorithms.informed.ida_star import IDAStarSolver
 
+from algorithms.complex_env.belief_state import BeliefStateSolver
+from algorithms.complex_env.and_or_graph import AndOrGraphSolver
+
+from algorithms.local_search.local_beam import LocalBeamSolver
 from algorithms.local_search.simple_hill_climbing import SimpleHillClimbingSolver
 from algorithms.local_search.stochastic_hill_climbing import StochasticHillClimbingSolver
 
@@ -20,6 +24,7 @@ from algorithms.csp.forward_checking import ForwardCheckingSolver
 from algorithms.csp.ac3 import AC3Solver
 from algorithms.csp.min_conflicts import MinConflictsSolver
 from algorithms.adversarial.minimax import MinimaxSolver
+from algorithms.adversarial.alpha_beta import AlphaBetaSolver
 from algorithms.adversarial.expectimax import ExpectimaxSolver
 
 from storage.database import save_match
@@ -216,10 +221,45 @@ class Gameplay:
                 obstacles=obstacles
             )
             self.solver_generator = self.solver.solve()
+        elif "Alpha-Beta" in algo_name:
+            self.solver = AlphaBetaSolver(
+                rows,
+                cols,
+                start_pos=self.start_pos,
+                obstacles=obstacles
+            )
+            self.solver_generator = self.solver.solve()
+            
+        elif "Local Beam" in algo_name:
+            self.solver = LocalBeamSolver(
+                rows,
+                cols,
+                start_pos=self.start_pos,
+                obstacles=obstacles,
+                beam_width=3  # Có thể tùy chỉnh k
+            )
+            self.solver_generator = self.solver.solve()
+            
+        elif "Belief State" in algo_name:
+            self.solver = BeliefStateSolver(
+                rows,
+                cols,
+                start_pos=self.start_pos,
+                obstacles=obstacles
+            )
+            self.solver_generator = self.solver.solve()
+            
+        elif "AND-OR" in algo_name:
+            self.solver = AndOrGraphSolver(
+                rows,
+                cols,
+                start_pos=self.start_pos,
+                obstacles=obstacles
+            )
+            self.solver_generator = self.solver.solve()
 
         self.start_time = time.time()
         self.last_ai_move_time = time.time()
-
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if self.show_popup and self.btn_popup_close.collidepoint(event.pos):

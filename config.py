@@ -42,7 +42,11 @@ ALGORITHMS = [
     "AC3 (CSP)",
     "Min-Conflicts (CSP)",
     "Minimax (Adversarial)",
-    "Expectimax (Adversarial)"
+    "Expectimax (Adversarial)",
+    "Alpha-Beta Pruning (Adversarial)",
+    "Local Beam Search (Local Search)",
+    "Belief State (Complex Environments)",
+    "AND-OR Graph Search (Complex Environments)"
 ]
 
 AI_DELAY = 0.2

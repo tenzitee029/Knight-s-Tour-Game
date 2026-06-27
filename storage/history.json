@@ -1,1 +1,38 @@
-[]
+[
+    {
+        "id": 1,
+        "date": "2026-06-27 15:54:34",
+        "level": "Tiêu Chuẩn (6x6)",
+        "algo": "Alpha-Beta Pruning (Adversarial)",
+        "steps": 36,
+        "time": "7.61s",
+        "status": "Thành công"
+    },
+    {
+        "id": 2,
+        "date": "2026-06-27 15:54:54",
+        "level": "Tiêu Chuẩn (6x6)",
+        "algo": "Local Beam Search (Local Search)",
+        "steps": 35,
+        "time": "7.77s",
+        "status": "Thất bại"
+    },
+    {
+        "id": 3,
+        "date": "2026-06-27 15:55:09",
+        "level": "Tiêu Chuẩn (6x6)",
+        "algo": "Belief State (Complex Environments)",
+        "steps": 35,
+        "time": "7.76s",
+        "status": "Thất bại"
+    },
+    {
+        "id": 4,
+        "date": "2026-06-27 15:55:24",
+        "level": "Tiêu Chuẩn (6x6)",
+        "algo": "AND-OR Graph Search (Complex Environments)",
+        "steps": 24,
+        "time": "5.46s",
+        "status": "Thất bại"
+    }
+]
