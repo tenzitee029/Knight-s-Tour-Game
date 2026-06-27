@@ -6,12 +6,12 @@ from algorithms.uninformed.common import SearchBaseSolver
 class StochasticHillClimbingSolver(SearchBaseSolver):
     """Stochastic Hill Climbing cho bài toán Knight's Tour.
 
-    Thuật toán lấy các trạng thái kề có điểm tốt hơn trạng thái hiện tại, sau đó
-    chọn ngẫu nhiên một trạng thái để đi tiếp. Cách này giúp đường đi bớt cứng
-    hơn Simple Hill Climbing, nhưng vẫn có thể mắc cực trị cục bộ.
+    Đúng tinh thần thuật toán:
+    - Mỗi bước sinh các trạng thái kề hợp lệ.
+    - Chỉ giữ các trạng thái có heuristic tốt hơn trạng thái hiện tại.
+    - Chọn ngẫu nhiên một trạng thái tốt hơn để đi tiếp.
+    - Không random restart trong thuật toán này.
     """
-
-    MAX_RANDOM_ATTEMPTS = 50
 
     def get_valid_moves(self, position, path):
         row, col = position
@@ -25,10 +25,6 @@ class StochasticHillClimbingSolver(SearchBaseSolver):
                 moves.append((next_row, next_col))
 
         return moves
-
-    def count_onward_moves(self, position, path):
-        new_path = path + [position]
-        return len(self.get_valid_moves(position, new_path))
 
     def count_isolated_cells(self, path):
         visited = set(path)
@@ -64,31 +60,23 @@ class StochasticHillClimbingSolver(SearchBaseSolver):
         return isolated_count
 
     def evaluate_path(self, path):
-        """Điểm càng lớn càng tốt."""
+        """Hàm heuristic. Điểm càng lớn càng tốt."""
         if len(path) == self.total_cells:
             return 1_000_000
 
         current_position = path[-1]
         onward_moves = len(self.get_valid_moves(current_position, path))
         isolated_penalty = self.count_isolated_cells(path) * 25
-
-        if onward_moves == 0:
-            dead_end_penalty = 500
-        else:
-            dead_end_penalty = 0
-
+        dead_end_penalty = 500 if onward_moves == 0 else 0
         path_length_score = len(path) * 100
         warnsdorff_bonus = 8 - onward_moves
 
         return path_length_score + warnsdorff_bonus - isolated_penalty - dead_end_penalty
 
     def weighted_random_choice(self, candidates):
-        """Chọn ngẫu nhiên, nhưng ưu tiên ứng viên có điểm cao hơn."""
+        """Chọn ngẫu nhiên, nhưng ưu tiên ứng viên có điểm heuristic cao hơn."""
         min_score = min(score for score, _ in candidates)
-        weights = []
-
-        for score, _ in candidates:
-            weights.append((score - min_score) + 1)
+        weights = [(score - min_score) + 1 for score, _ in candidates]
 
         return random.choices(
             [candidate for _, candidate in candidates],
@@ -97,6 +85,10 @@ class StochasticHillClimbingSolver(SearchBaseSolver):
         )[0]
 
     def run_one_attempt(self):
+        """Chạy đúng 1 lần Stochastic Hill Climbing.
+
+        Hàm này được tách riêng để Random Restart Hill Climbing có thể tái sử dụng.
+        """
         path = [self.start_pos]
         visited_nodes_count = 1
 
@@ -113,9 +105,7 @@ class StochasticHillClimbingSolver(SearchBaseSolver):
                 visited_nodes_count += 1
 
                 if candidate_score > current_score:
-                    improving_candidates.append(
-                        (candidate_score, candidate_path)
-                    )
+                    improving_candidates.append((candidate_score, candidate_path))
 
             if not improving_candidates:
                 break
@@ -126,38 +116,20 @@ class StochasticHillClimbingSolver(SearchBaseSolver):
         return path, visited_nodes_count
 
     def solve(self):
-        total_visited_nodes = 0
-        best_path = [self.start_pos]
+        """Stochastic Hill Climbing chỉ chạy 1 attempt, không restart."""
+        attempt_generator = self.run_one_attempt()
+        final_path = [self.start_pos]
+        final_nodes = 1
 
-        for _ in range(self.MAX_RANDOM_ATTEMPTS):
-            attempt_generator = self.run_one_attempt()
-            final_path = [self.start_pos]
-            previous_attempt_nodes = 0
+        try:
+            while True:
+                path, visited_nodes_count, done = next(attempt_generator)
+                final_path = path
+                final_nodes = visited_nodes_count
+                yield path.copy(), visited_nodes_count, done
 
-            try:
-                while True:
-                    path, attempt_nodes, done = next(attempt_generator)
-                    final_path = path
-                    node_delta = max(0, attempt_nodes - previous_attempt_nodes)
-                    previous_attempt_nodes = attempt_nodes
-                    total_visited_nodes += node_delta
+        except StopIteration as stop_result:
+            if stop_result.value:
+                final_path, final_nodes = stop_result.value
 
-                    if len(path) > len(best_path):
-                        best_path = path.copy()
-
-                    yield path.copy(), total_visited_nodes, False
-
-            except StopIteration as stop_result:
-                if stop_result.value:
-                    final_path, attempt_nodes = stop_result.value
-                    node_delta = max(0, attempt_nodes - previous_attempt_nodes)
-                    total_visited_nodes += node_delta
-
-            if len(final_path) > len(best_path):
-                best_path = final_path.copy()
-
-            if len(best_path) == self.total_cells:
-                yield best_path.copy(), total_visited_nodes, True
-                return
-
-        yield best_path.copy(), total_visited_nodes, True
+        yield final_path.copy(), final_nodes, True
