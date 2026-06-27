@@ -1,1 +1,20 @@
-[]
+[
+    {
+        "id": 1,
+        "date": "2026-06-27 14:24:12",
+        "level": "Khởi Động (5x5)",
+        "algo": "DFS (Uninformed)",
+        "steps": 25,
+        "time": "40.00s",
+        "status": "Thành công"
+    },
+    {
+        "id": 2,
+        "date": "2026-06-27 14:24:35",
+        "level": "Thử Thách (6x6 - Vật Cản)",
+        "algo": "DFS (Uninformed)",
+        "steps": 32,
+        "time": "16.86s",
+        "status": "Thành công"
+    }
+]
