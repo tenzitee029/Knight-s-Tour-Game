@@ -50,6 +50,7 @@ ALGORITHMS = [
     "IDA* (Informed)",
     "Simple Hill Climbing (Local Search)",
     "Stochastic Hill Climbing (Local Search)",
+    "Random Restart Hill Climbing (Local Search)",
     "Backtracking (CSP)",
     "Forward Checking (CSP)",
     "AC3 (CSP)",

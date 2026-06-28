@@ -18,6 +18,7 @@ from algorithms.complex_env.and_or_graph import AndOrGraphSolver
 from algorithms.local_search.local_beam import LocalBeamSolver
 from algorithms.local_search.simple_hill_climbing import SimpleHillClimbingSolver
 from algorithms.local_search.stochastic_hill_climbing import StochasticHillClimbingSolver
+from algorithms.local_search.random_restart_hill_climbing import RandomRestartHillClimbingSolver
 
 from algorithms.csp.backtracking import BacktrackingSolver
 from algorithms.csp.forward_checking import ForwardCheckingSolver
@@ -170,6 +171,15 @@ class Gameplay:
 
         elif "Simple Hill Climbing" in algo_name:
             self.solver = SimpleHillClimbingSolver(
+                rows,
+                cols,
+                start_pos=self.start_pos,
+                obstacles=obstacles
+            )
+            self.solver_generator = self.solver.solve()
+
+        elif "Random Restart Hill Climbing" in algo_name:
+            self.solver = RandomRestartHillClimbingSolver(
                 rows,
                 cols,
                 start_pos=self.start_pos,
