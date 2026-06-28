@@ -228,6 +228,7 @@ class LevelSelect:
             if (
                 "Expectimax" in selected_algorithm
                 or "Minimax" in selected_algorithm
+                or "Alpha" in selected_algorithm
             ):
                 self.algorithm_list_open = False
                 self.show_adversarial_rules = True
@@ -546,6 +547,19 @@ class LevelSelect:
                     "6. MAX thắng khi đạt ít nhất 50% số ô.",
                     "7. Nếu MAX thua, tự động chơi trận mới.",
                     "8. Dừng khi MAX thắng hoặc đủ 100 trận."
+                ]
+            elif "Alpha" in selected_algorithm:  # Bổ sung luật cho Alpha-Beta
+                rules_title = "LUẬT CHƠI ALPHA-BETA"
+                rules = [
+                    "1. AI MAX điều khiển quân mã.",
+                    "2. AI MIN có nhiệm vụ cản trở MAX.",
+                    "3. MAX và MIN luân phiên từng lượt.",
+                    "4. Mỗi lượt MIN khóa một ô hợp lệ.",
+                    "5. Ô bị khóa sẽ không thể đi vào.",
+                    "6. MAX thắng khi đi được ít nhất 50% số ô.",
+                    "7. MAX thua khi không còn nước đi.",
+                    "8. Alpha-Beta cắt tỉa các nhánh không tối ưu.",
+                    "9. Dừng khi MAX thắng hoặc đủ 100 ván."
                 ]
 
             else:

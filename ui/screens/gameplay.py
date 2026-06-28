@@ -257,7 +257,28 @@ class Gameplay:
                 obstacles=obstacles
             )
             self.solver_generator = self.solver.solve()
-
+        # Ví dụ cấu trúc trong hàm setup_game của bạn
+        elif "Full Observation" in algo_name:
+            self.solver = BeliefStateSolver(
+            rows=8, cols=8, 
+            start_pos=self.start_pos,     # <-- Thêm self. ở đây
+            obstacles=obstacles,     # <-- Thêm self. ở đây
+            observation_mode='full'
+        )
+        elif "Partial Observation" in algo_name:
+            self.solver = BeliefStateSolver(
+            rows=8, cols=8, 
+            start_pos=self.start_pos,     # <-- Thêm self. ở đây
+            obstacles=obstacles,     # <-- Thêm self. ở đây
+            observation_mode='partial'
+        )
+        elif "No Observation" in algo_name:
+            self.solver = BeliefStateSolver(
+            rows=8, cols=8, 
+            start_pos=self.start_pos,     # <-- Thêm self. ở đây
+            obstacles=obstacles,     # <-- Thêm self. ở đây
+            observation_mode='none'
+        )
         self.start_time = time.time()
         self.last_ai_move_time = time.time()
     def handle_event(self, event):

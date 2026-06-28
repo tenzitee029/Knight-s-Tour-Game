@@ -58,7 +58,9 @@ ALGORITHMS = [
     "Expectimax (Adversarial)",
     "Alpha-Beta Pruning (Adversarial)",
     "Local Beam Search (Local Search)",
-    "Belief State (Complex Environments)",
+    "Belief State No Observation (Complex Environments)",
+    "Belief State Partial Observation (Complex Environments)",
+    "Belief State Full Observation (Complex Environments)",
     "AND-OR Graph Search (Complex Environments)"
 ]
 
