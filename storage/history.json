@@ -187,5 +187,59 @@
         "steps": 35,
         "time": "7.52s",
         "status": "Thất bại"
+    },
+    {
+        "id": 22,
+        "date": "2026-06-29 16:06:30",
+        "level": "Khởi Động (5x5)",
+        "algo": "Belief State No Observation (Complex Environments)",
+        "steps": 0,
+        "time": "5.62s",
+        "status": "Thất bại"
+    },
+    {
+        "id": 23,
+        "date": "2026-06-29 16:06:55",
+        "level": "Khởi Động (5x5)",
+        "algo": "Belief State Partial Observation (Complex Environments)",
+        "steps": 0,
+        "time": "5.61s",
+        "status": "Thất bại"
+    },
+    {
+        "id": 24,
+        "date": "2026-06-29 16:07:05",
+        "level": "Khởi Động (5x5)",
+        "algo": "Belief State Full Observation (Complex Environments)",
+        "steps": 0,
+        "time": "5.62s",
+        "status": "Thất bại"
+    },
+    {
+        "id": 25,
+        "date": "2026-06-29 16:08:41",
+        "level": "Khởi Động (5x5)",
+        "algo": "Belief State No Observation (Complex Environments)",
+        "steps": 0,
+        "time": "5.65s",
+        "status": "Thất bại"
+    },
+    {
+        "id": 26,
+        "date": "2026-06-29 16:08:51",
+        "level": "Khởi Động (5x5)",
+        "algo": "Belief State Partial Observation (Complex Environments)",
+        "steps": 0,
+        "time": "5.65s",
+        "status": "Thất bại"
+    },
+    {
+        "id": 27,
+        "date": "2026-06-29 16:09:02",
+        "level": "Khởi Động (5x5)",
+        "algo": "Belief State Full Observation (Complex Environments)",
+        "steps": 0,
+        "time": "5.66s",
+        "status": "Thất bại"
     }
 ]

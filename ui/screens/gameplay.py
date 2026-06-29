@@ -12,7 +12,7 @@ from algorithms.informed.gbfs import GBFSSolver
 from algorithms.informed.astar import AStarSolver
 from algorithms.informed.ida_star import IDAStarSolver
 
-from algorithms.complex_env.belief_state import BeliefStateSolver
+from algorithms.complex_env.belief_full_obs import BeliefStateSolver
 from algorithms.complex_env.and_or_graph import AndOrGraphSolver
 
 from algorithms.local_search.local_beam import LocalBeamSolver
