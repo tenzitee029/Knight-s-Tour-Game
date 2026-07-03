@@ -3,23 +3,30 @@ import time
 from pathlib import Path
 from config import *
 
+# ==================== UNINFORMED SEARCH ====================
 from algorithms.uninformed.bfs import BFSSolver
 from algorithms.uninformed.dfs import DFSSolver
 from algorithms.uninformed.ucs import UCSSolver
 from algorithms.uninformed.ids import IDSSolver
 
+# ==================== INFORMED SEARCH ====================
 from algorithms.informed.gbfs import GBFSSolver
 from algorithms.informed.astar import AStarSolver
 from algorithms.informed.ida_star import IDAStarSolver
 
-from algorithms.complex_env.belief_full_obs import BeliefStateSolver
+# ==================== COMPLEX ENVIRONMENT ====================
+from algorithms.complex_env.belief_full_obs import FullObservationBeliefSolver
+from algorithms.complex_env.belief_no_obs import NoObservationBeliefSolver
+from algorithms.complex_env.belief_partial_obs import PartialObservationBeliefSolver
 from algorithms.complex_env.and_or_graph import AndOrGraphSolver
 
+# ==================== LOCAL SEARCH ====================
 from algorithms.local_search.local_beam import LocalBeamSolver
 from algorithms.local_search.simple_hill_climbing import SimpleHillClimbingSolver
 from algorithms.local_search.stochastic_hill_climbing import StochasticHillClimbingSolver
 from algorithms.local_search.random_restart_hill_climbing import RandomRestartHillClimbingSolver
 
+# ==================== CSP & ADVERSARIAL ====================
 from algorithms.csp.backtracking import BacktrackingSolver
 from algorithms.csp.forward_checking import ForwardCheckingSolver
 from algorithms.csp.ac3 import AC3Solver
@@ -28,8 +35,9 @@ from algorithms.adversarial.minimax import MinimaxSolver
 from algorithms.adversarial.alpha_beta import AlphaBetaSolver
 from algorithms.adversarial.expectimax import ExpectimaxSolver
 
+# ==================== UTILITIES ====================
 from storage.database import save_match
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw   # Dùng cho export GIF
 
 class Gameplay:
     def __init__(self, manager):
@@ -88,6 +96,8 @@ class Gameplay:
         else:
             valid_positions = [(r, c) for r in range(rows) for c in range(cols) if (r, c) not in obstacles]
             self.start_pos = valid_positions[0]
+        if "Full Observation" in algo_name or "Partial Observation" in algo_name or "No Observation" in algo_name:
+            self.start_pos = None
         if "Minimax" in algo_name:
             self.solver = MinimaxSolver(
                 rows,
@@ -250,45 +260,45 @@ class Gameplay:
             )
             self.solver_generator = self.solver.solve()
             
-        elif "Belief State" in algo_name:
-            self.solver = BeliefStateSolver(
-                rows,
-                cols,
-                start_pos=self.start_pos,
-                obstacles=obstacles
-            )
-            self.solver_generator = self.solver.solve()
-            
-        elif "AND-OR" in algo_name:
-            self.solver = AndOrGraphSolver(
-                rows,
-                cols,
-                start_pos=self.start_pos,
-                obstacles=obstacles
-            )
-            self.solver_generator = self.solver.solve()
-        # Ví dụ cấu trúc trong hàm setup_game của bạn
+                # ==================== BELIEF STATE (Complex Environment) ====================
         elif "Full Observation" in algo_name:
-            self.solver = BeliefStateSolver(
-            rows=8, cols=8, 
-            start_pos=self.start_pos,     # <-- Thêm self. ở đây
-            obstacles=obstacles,     # <-- Thêm self. ở đây
-            observation_mode='full'
-        )
+            self.solver = FullObservationBeliefSolver(
+                rows=rows,
+                cols=cols,
+                start_pos=self.start_pos,
+                obstacles=obstacles
+            )
+            self.solver_generator = self.solver.solve()
+
         elif "Partial Observation" in algo_name:
-            self.solver = BeliefStateSolver(
-            rows=8, cols=8, 
-            start_pos=self.start_pos,     # <-- Thêm self. ở đây
-            obstacles=obstacles,     # <-- Thêm self. ở đây
-            observation_mode='partial'
-        )
+            self.solver = PartialObservationBeliefSolver(
+                rows=rows,
+                cols=cols,
+                start_pos=self.start_pos,
+                obstacles=obstacles
+            )
+            half_mode = "left" if "Left" in algo_name else "right"
+            self.solver_generator = self.solver.solve(half=half_mode)
+
         elif "No Observation" in algo_name:
-            self.solver = BeliefStateSolver(
-            rows=8, cols=8, 
-            start_pos=self.start_pos,     # <-- Thêm self. ở đây
-            obstacles=obstacles,     # <-- Thêm self. ở đây
-            observation_mode='none'
-        )
+            self.solver = NoObservationBeliefSolver(
+                rows=rows,
+                cols=cols,
+                start_pos=self.start_pos,
+                obstacles=obstacles
+            )
+            self.solver_generator = self.solver.solve()
+
+        # ==================== AND-OR GRAPH ====================
+        elif "AND-OR" in algo_name or "And Or" in algo_name:
+            self.solver = AndOrGraphSolver(
+                rows=rows,
+                cols=cols,
+                start_pos=self.start_pos,
+                obstacles=obstacles
+            )
+            self.solver_generator = self.solver.solve()
+            self.solver_generator = self.solver.solve()
         self.start_time = time.time()
         self.last_ai_move_time = time.time()
     def handle_event(self, event):

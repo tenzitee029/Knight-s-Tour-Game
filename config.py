@@ -1,4 +1,4 @@
-import pygame
+# config.py - Cấu hình chung cho dự án Knight's Tour
 
 # Kích thước màn hình
 SCREEN_WIDTH = 1000
@@ -17,8 +17,7 @@ COLOR_PATH = (255, 69, 0)        # Màu đường đi của Mã (Orange Red)
 COLOR_VISITED = (100, 149, 237)   # Ô đã duyệt qua (Cornflower Blue)
 COLOR_CURRENT = (255, 215, 0)     # Vị trí hiện tại của Mã (Gold)
 
-# Cấu hình Level (Kích thước, Tên, Vật cản nếu có)
-# Cấu hình Level (Rút gọn từ 6 xuống còn 3 màn chơi)
+# Cấu hình Level
 LEVELS = {
     1: {
         "name": "Khởi Động (5x5)", 
@@ -40,6 +39,7 @@ LEVELS = {
     }
 }
 
+# Danh sách thuật toán
 ALGORITHMS = [
     "BFS (Uninformed)",
     "DFS (Uninformed)",

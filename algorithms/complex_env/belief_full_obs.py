@@ -1,42 +1,59 @@
+import random
 from collections import deque
-from algorithms.uninformed.common import SearchBaseSolver
+from typing import Optional   # ← Thêm dòng này
 
-class BeliefStateSolver(SearchBaseSolver):
-    """1. Full Observation Solver
-    Biết chính xác 100% vị trí quân Mã. Tập niềm tin luôn chỉ có 1 phần tử.
-    """
+class FullObservationBeliefSolver:
+    """FULL OBSERVATION - Biết chính xác vị trí. Random start mỗi lần chạy."""
     
-    def get_valid_moves(self, pos: tuple[int, int]) -> list[tuple[int, int]]:
-        x, y = pos
-        knight_moves = [
-            (x + 2, y + 1), (x + 2, y - 1), (x - 2, y + 1), (x - 2, y - 1),
-            (x + 1, y + 2), (x + 1, y - 2), (x - 1, y + 2), (x - 1, y - 2)
-        ]
-        return [(nx, ny) for nx, ny in knight_moves if 0 <= nx < self.rows and 0 <= ny < self.cols]
+    def __init__(self, rows: int, cols: int, start_pos=None, obstacles=None):
+        self.rows = rows
+        self.cols = cols
+        self.default_start = start_pos
+        self.obstacles = set(obstacles) if obstacles else set()
+        self.total_cells = rows * cols - len(self.obstacles)
 
-    def solve(self):
+    def get_valid_moves(self, pos: tuple, visited: set) -> list:
+        x, y = pos
+        moves = [(x+2,y+1),(x+2,y-1),(x-2,y+1),(x-2,y-1),
+                 (x+1,y+2),(x+1,y-2),(x-1,y+2),(x-1,y-2)]
+        return [(nx, ny) for nx, ny in moves 
+                if 0 <= nx < self.rows and 0 <= ny < self.cols 
+                and (nx, ny) not in visited and (nx, ny) not in self.obstacles]
+
+    def get_random_start(self) -> tuple:
+        valid_pos = [(r, c) for r in range(self.rows) for c in range(self.cols) 
+                    if (r, c) not in self.obstacles]
+        return random.choice(valid_pos)
+
+    def solve(self, initial_pos: Optional[tuple] = None):
         visited_nodes_count = 0
-        start_belief = frozenset([self.start_pos])
         
-        queue = deque([(start_belief, [self.start_pos])])
-        visited_beliefs = {start_belief}
+        # Ưu tiên random nếu start_pos là None
+        if initial_pos is None and self.default_start is None:
+            start_pos = self.get_random_start()
+        else:
+            start_pos = initial_pos or self.default_start or self.get_random_start()
+        
+        belief = frozenset([start_pos])
+        queue = deque([(belief, [start_pos])])
+        visited_beliefs = {belief}
 
         while queue:
             curr_belief, path = queue.popleft()
             visited_nodes_count += 1
-            
-            curr_pos = next(iter(curr_belief))
             yield path, visited_nodes_count, False
 
-            if len(path) == self.rows * self.cols:
+            if len(path) == self.total_cells:
                 yield path, visited_nodes_count, True
                 return
 
-            for next_pos in self.get_valid_moves(curr_pos):
-                if next_pos not in path:
-                    next_belief = frozenset([next_pos])
-                    if next_belief not in visited_beliefs:
-                        visited_beliefs.add(next_belief)
-                        queue.append((next_belief, path + [next_pos]))
+            curr_pos = next(iter(curr_belief))
+            visited_set = set(path)
+
+            for next_pos in self.get_valid_moves(curr_pos, visited_set):
+                next_belief = frozenset([next_pos])
+                if next_belief not in visited_beliefs:
+                    visited_beliefs.add(next_belief)
+                    queue.append((next_belief, path + [next_pos]))
 
         yield [], visited_nodes_count, False
