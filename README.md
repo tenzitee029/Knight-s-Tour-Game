@@ -28,7 +28,7 @@ Trò chơi áp dụng các thuật toán tìm kiếm để giải bài toán **K
 | | | | |
 | :---: | :---: | :---: | :---: |
 | **Belief State (No Obs)** | **Belief State (Partial Obs)** | **Belief State (Full Obs)** | **AND-OR** |
-| --- | --- | --- | <img src="GIF/And-Or.gif" width="150" /> |
+| <img src="GIF/BeliefNoObs.gif" width="150" /> | --- | --- | <img src="GIF/And-Or.gif" width="150" /> |
 ### 5. CSP
 | | | | |
 | :---: | :---: | :---: | :---: |
@@ -38,7 +38,7 @@ Trò chơi áp dụng các thuật toán tìm kiếm để giải bài toán **K
 | | | |
 | :---: | :---: | :---: |
 | **Minimax** | **Alpha-Beta** | **Expectimax** |
-| <img src="GIF/Minimax.gif" width="150" /> | --- | <img src="GIF/Expectimax.gif" width="150" /> |
+| <img src="GIF/Minimax.gif" width="150" /> | <img src="GIF/Alpha-Beta.gif" width="150" /> | <img src="GIF/Expectimax.gif" width="150" /> |
 ---
 
 ## Hướng dẫn cài đặt và sử dụng

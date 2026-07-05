@@ -637,5 +637,41 @@
         "steps": 18,
         "time": "4.86s",
         "status": "Thất bại"
+    },
+    {
+        "id": 72,
+        "date": "2026-07-05 18:25:52",
+        "level": "Khởi Động (5x5)",
+        "algo": "Belief State No Observation (Complex Environments)",
+        "steps": 25,
+        "time": "1.15s",
+        "status": "Thành công"
+    },
+    {
+        "id": 73,
+        "date": "2026-07-05 18:26:27",
+        "level": "Khởi Động (5x5)",
+        "algo": "Belief State Partial Observation (Complex Environments)",
+        "steps": 0,
+        "time": "7.80s",
+        "status": "Thất bại"
+    },
+    {
+        "id": 74,
+        "date": "2026-07-05 18:26:53",
+        "level": "Khởi Động (5x5)",
+        "algo": "Belief State Full Observation (Complex Environments)",
+        "steps": 0,
+        "time": "8.12s",
+        "status": "Thất bại"
+    },
+    {
+        "id": 75,
+        "date": "2026-07-05 18:27:41",
+        "level": "Khởi Động (5x5)",
+        "algo": "Alpha-Beta Pruning (Adversarial)",
+        "steps": 13,
+        "time": "1.39s",
+        "status": "Thất bại"
     }
 ]
