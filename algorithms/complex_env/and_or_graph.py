@@ -1,64 +1,62 @@
-from typing import List, Tuple, Optional, Set
+# algorithms/complex_env/and_or_graph.py
+import random
+from typing import List, Optional, Generator
 
 class AndOrGraphSolver:
-    """And-Or Graph Search cho Knight's Tour"""
+    """AND-OR GRAPH - DFS + Backtracking + Warnsdorff"""
     
-    def __init__(self, rows: int, cols: int, start_pos: tuple, obstacles=None):
+    def __init__(self, rows: int, cols: int, start_pos=None, obstacles=None):
         self.rows = rows
         self.cols = cols
-        self.start_pos = start_pos
+        self.default_start = start_pos
         self.obstacles = set(obstacles) if obstacles else set()
         self.total_cells = rows * cols - len(self.obstacles)
-        self.moves = [(2,1),(1,2),(-1,2),(-2,1),(-2,-1),(-1,-2),(1,-2),(2,-1)]
 
-    def get_valid_moves(self, pos: tuple, visited: set) -> list[tuple]:
-        r, c = pos
-        valid = []
-        for dr, dc in self.moves:
-            nr, nc = r + dr, c + dc
-            if (0 <= nr < self.rows and 0 <= nc < self.cols and 
-                (nr, nc) not in visited and (nr, nc) not in self.obstacles):
-                valid.append((nr, nc))
-        return valid
+    def get_valid_moves(self, pos: tuple, visited: set) -> list:
+        x, y = pos
+        moves = [(x+2,y+1),(x+2,y-1),(x-2,y+1),(x-2,y-1),
+                 (x+1,y+2),(x+1,y-2),(x-1,y+2),(x-1,y-2)]
+        return [(nx, ny) for nx, ny in moves 
+                if 0 <= nx < self.rows and 0 <= ny < self.cols 
+                and (nx, ny) not in visited and (nx, ny) not in self.obstacles]
 
-    def solve(self):
-        visited: List[tuple] = [self.start_pos]
-        visited_set: Set[tuple] = {self.start_pos}
-        current_pos = self.start_pos
-        visited_nodes_count = 1
+    def get_random_start(self) -> tuple:
+        valid_pos = [(r, c) for r in range(self.rows) for c in range(self.cols) 
+                    if (r, c) not in self.obstacles]
+        return random.choice(valid_pos)
 
-        yield visited.copy(), visited_nodes_count, False
+    def warnsdorff_score(self, pos: tuple, visited: set) -> int:
+        return len(self.get_valid_moves(pos, visited | {pos}))
 
-        while len(visited) < self.total_cells:
-            or_nodes = self.get_valid_moves(current_pos, visited_set)
+    def solve(self, initial_pos: Optional[tuple] = None):
+        start_pos = initial_pos or self.default_start or self.get_random_start()
+        visited_nodes_count = 0
+        path = [start_pos]
 
-            if not or_nodes:
-                yield visited.copy(), visited_nodes_count, False
-                return
-
-            best_move = None
-            best_score = -1
-
-            for move in or_nodes:
-                temp_visited = visited_set | {move}
-                contingency = self.get_valid_moves(move, temp_visited)
-                score = len(contingency)
-
-                if len(visited) + 1 == self.total_cells:
-                    best_move = move
-                    break
-                if score > best_score:
-                    best_score = score
-                    best_move = move
-
-            if best_move is None:
-                best_move = or_nodes[0]
-
-            visited.append(best_move)
-            visited_set.add(best_move)
-            current_pos = best_move
+        def dfs(current_path: List[tuple]):
+            nonlocal visited_nodes_count
             visited_nodes_count += 1
+            
+            # Yield theo format mà Gameplay.py mong đợi: (path, nodes, done)
+            yield current_path.copy(), visited_nodes_count, False
 
-            yield visited.copy(), visited_nodes_count, False
+            if len(current_path) == self.total_cells:
+                print(f"✅ And-Or Graph - Tìm thấy đường đi hoàn chỉnh!")
+                yield current_path.copy(), visited_nodes_count, True
+                return True
 
-        yield visited.copy(), visited_nodes_count, True
+            current_pos = current_path[-1]
+            visited_set = set(current_path)
+
+            moves = self.get_valid_moves(current_pos, visited_set)
+            moves.sort(key=lambda p: self.warnsdorff_score(p, visited_set))
+
+            for next_pos in moves:
+                current_path.append(next_pos)
+                if (yield from dfs(current_path)):
+                    return True
+                current_path.pop()
+
+            return False
+
+        return dfs(path)   # Trả về generator

@@ -1,9 +1,8 @@
 import random
-from collections import deque
-from typing import Optional   # ← Thêm dòng này
+from typing import List, Optional
 
 class FullObservationBeliefSolver:
-    """FULL OBSERVATION - Biết chính xác vị trí. Random start mỗi lần chạy."""
+    """FULL OBSERVATION - DFS + Backtracking + Warnsdorff"""
     
     def __init__(self, rows: int, cols: int, start_pos=None, obstacles=None):
         self.rows = rows
@@ -25,35 +24,39 @@ class FullObservationBeliefSolver:
                     if (r, c) not in self.obstacles]
         return random.choice(valid_pos)
 
+    def warnsdorff_score(self, pos: tuple, visited: set) -> int:
+        return len(self.get_valid_moves(pos, visited | {pos}))
+
     def solve(self, initial_pos: Optional[tuple] = None):
+        start_pos = initial_pos or self.default_start or self.get_random_start()
         visited_nodes_count = 0
-        
-        # Ưu tiên random nếu start_pos là None
-        if initial_pos is None and self.default_start is None:
-            start_pos = self.get_random_start()
-        else:
-            start_pos = initial_pos or self.default_start or self.get_random_start()
-        
-        belief = frozenset([start_pos])
-        queue = deque([(belief, [start_pos])])
-        visited_beliefs = {belief}
+        path = [start_pos]
 
-        while queue:
-            curr_belief, path = queue.popleft()
+        def dfs(current_path: List[tuple]):
+            nonlocal visited_nodes_count
             visited_nodes_count += 1
-            yield path, visited_nodes_count, False
+            yield current_path.copy(), visited_nodes_count, False
 
-            if len(path) == self.total_cells:
-                yield path, visited_nodes_count, True
-                return
+            if len(current_path) == self.total_cells:
+                print(f"✅ Full Observation - Tìm thấy đường đi hoàn chỉnh!")
+                yield current_path.copy(), visited_nodes_count, True
+                return True
 
-            curr_pos = next(iter(curr_belief))
-            visited_set = set(path)
+            current_pos = current_path[-1]
+            visited_set = set(current_path)
 
-            for next_pos in self.get_valid_moves(curr_pos, visited_set):
-                next_belief = frozenset([next_pos])
-                if next_belief not in visited_beliefs:
-                    visited_beliefs.add(next_belief)
-                    queue.append((next_belief, path + [next_pos]))
+            moves = self.get_valid_moves(current_pos, visited_set)
+            moves.sort(key=lambda p: self.warnsdorff_score(p, visited_set))
 
-        yield [], visited_nodes_count, False
+            for next_pos in moves:
+                current_path.append(next_pos)
+                if (yield from dfs(current_path)):
+                    return True
+                current_path.pop()
+
+            return False
+
+        found = yield from dfs(path)
+        if not found:
+            print(f"❌ Full Observation - Không tìm thấy đường đi sau {visited_nodes_count} nodes")
+            yield [], visited_nodes_count, False

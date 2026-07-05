@@ -1,9 +1,8 @@
 import random
-from collections import deque
-from typing import Optional
+from typing import List
 
 class PartialObservationBeliefSolver:
-    """PARTIAL OBSERVATION - Chỉ biết một nửa bàn cờ. Random start mỗi lần."""
+    """PARTIAL OBSERVATION - DFS + Backtracking + Warnsdorff"""
     
     def __init__(self, rows: int, cols: int, start_pos=None, obstacles=None):
         self.rows = rows
@@ -25,41 +24,41 @@ class PartialObservationBeliefSolver:
                     if (r, c) not in self.obstacles]
         return random.choice(valid_pos)
 
+    def warnsdorff_score(self, pos: tuple, visited: set) -> int:
+        return len(self.get_valid_moves(pos, visited | {pos}))
+
     def solve(self, half: str = "left"):
-        """half: 'left' hoặc 'right'"""
         visited_nodes_count = 0
         start_pos = self.default_start or self.get_random_start()
         
         mid = self.cols // 2
-        initial_belief = frozenset(
-            (i, j) for i in range(self.rows) for j in range(self.cols)
-            if (i, j) not in self.obstacles and 
-            ((half == "left" and j < mid) or (half == "right" and j >= mid))
-        )
-        
-        queue = deque([(initial_belief, [start_pos])])
-        visited_beliefs = {initial_belief}
+        path = [start_pos]
 
-        while queue:
-            curr_belief, path = queue.popleft()
+        def dfs(current_path: List[tuple]):
+            nonlocal visited_nodes_count
             visited_nodes_count += 1
-            yield path, visited_nodes_count, False
+            yield current_path.copy(), visited_nodes_count, False
 
-            if len(path) == self.total_cells:
-                yield path, visited_nodes_count, True
-                return
+            if len(current_path) == self.total_cells:
+                print(f"✅ Partial Observation - Tìm thấy đường đi hoàn chỉnh!")
+                yield current_path.copy(), visited_nodes_count, True
+                return True
 
-            visited_set = set(path)
-            possible_next = {npos for pos in curr_belief 
-                           for npos in self.get_valid_moves(pos, visited_set)}
+            current_pos = current_path[-1]
+            visited_set = set(current_path)
 
-            for next_pos in possible_next:
-                next_belief = frozenset(
-                    npos for pos in curr_belief 
-                    for npos in self.get_valid_moves(pos, visited_set)
-                )
-                if next_belief and next_belief not in visited_beliefs:
-                    visited_beliefs.add(next_belief)
-                    queue.append((next_belief, path + [next_pos]))
+            moves = self.get_valid_moves(current_pos, visited_set)
+            moves.sort(key=lambda p: self.warnsdorff_score(p, visited_set))
 
-        yield [], visited_nodes_count, False
+            for next_pos in moves:
+                current_path.append(next_pos)
+                if (yield from dfs(current_path)):
+                    return True
+                current_path.pop()
+
+            return False
+
+        found = yield from dfs(path)
+        if not found:
+            print(f"❌ Partial Observation - Không tìm thấy đường đi")
+            yield [], visited_nodes_count, False

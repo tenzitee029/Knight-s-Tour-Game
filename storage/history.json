@@ -448,5 +448,194 @@
         "steps": 25,
         "time": "1.96s",
         "status": "Thành công"
+    },
+    {
+        "id": 51,
+        "date": "2026-07-04 18:15:34",
+        "level": "Khởi Động (5x5)",
+        "algo": "Belief State Full Observation (Complex Environments)",
+        "steps": 0,
+        "time": "5.63s",
+        "status": "Thất bại"
+    },
+    {
+        "id": 52,
+        "date": "2026-07-04 18:18:04",
+        "level": "Khởi Động (5x5)",
+        "algo": "Belief State Full Observation (Complex Environments)",
+        "steps": 25,
+        "time": "5.41s",
+        "status": "Thành công"
+    },
+    {
+        "id": 53,
+        "date": "2026-07-04 18:19:14",
+        "level": "Khởi Động (5x5)",
+        "algo": "Belief State Partial Observation (Complex Environments)",
+        "steps": 0,
+        "time": "30.80s",
+        "status": "Thất bại"
+    },
+    {
+        "id": 54,
+        "date": "2026-07-04 18:21:33",
+        "level": "Khởi Động (5x5)",
+        "algo": "Belief State Partial Observation (Complex Environments)",
+        "steps": 0,
+        "time": "55.97s",
+        "status": "Thất bại"
+    },
+    {
+        "id": 55,
+        "date": "2026-07-04 18:23:43",
+        "level": "Tiêu Chuẩn (6x6)",
+        "algo": "Belief State No Observation (Complex Environments)",
+        "steps": 36,
+        "time": "7.81s",
+        "status": "Thành công"
+    },
+    {
+        "id": 56,
+        "date": "2026-07-04 18:23:58",
+        "level": "Tiêu Chuẩn (6x6)",
+        "algo": "Belief State Partial Observation (Complex Environments)",
+        "steps": 36,
+        "time": "7.82s",
+        "status": "Thành công"
+    },
+    {
+        "id": 57,
+        "date": "2026-07-04 18:24:12",
+        "level": "Tiêu Chuẩn (6x6)",
+        "algo": "Belief State Full Observation (Complex Environments)",
+        "steps": 36,
+        "time": "7.82s",
+        "status": "Thành công"
+    },
+    {
+        "id": 58,
+        "date": "2026-07-04 18:25:27",
+        "level": "Khởi Động (5x5)",
+        "algo": "Belief State Full Observation (Complex Environments)",
+        "steps": 0,
+        "time": "38.58s",
+        "status": "Thất bại"
+    },
+    {
+        "id": 59,
+        "date": "2026-07-04 18:46:12",
+        "level": "Khởi Động (5x5)",
+        "algo": "AND-OR Graph Search (Complex Environments)",
+        "steps": 25,
+        "time": "0.22s",
+        "status": "Thành công"
+    },
+    {
+        "id": 60,
+        "date": "2026-07-04 18:46:22",
+        "level": "Tiêu Chuẩn (6x6)",
+        "algo": "AND-OR Graph Search (Complex Environments)",
+        "steps": 36,
+        "time": "0.22s",
+        "status": "Thành công"
+    },
+    {
+        "id": 61,
+        "date": "2026-07-04 18:48:01",
+        "level": "Khởi Động (5x5)",
+        "algo": "AND-OR Graph Search (Complex Environments)",
+        "steps": 25,
+        "time": "0.20s",
+        "status": "Thành công"
+    },
+    {
+        "id": 62,
+        "date": "2026-07-04 18:50:30",
+        "level": "Khởi Động (5x5)",
+        "algo": "AND-OR Graph Search (Complex Environments)",
+        "steps": 25,
+        "time": "0.21s",
+        "status": "Thành công"
+    },
+    {
+        "id": 63,
+        "date": "2026-07-04 19:52:53",
+        "level": "Khởi Động (5x5)",
+        "algo": "AND-OR Graph Search (Complex Environments)",
+        "steps": 25,
+        "time": "0.22s",
+        "status": "Thành công"
+    },
+    {
+        "id": 64,
+        "date": "2026-07-04 19:53:17",
+        "level": "Khởi Động (5x5)",
+        "algo": "AND-OR Graph Search (Complex Environments)",
+        "steps": 25,
+        "time": "5.43s",
+        "status": "Thành công"
+    },
+    {
+        "id": 65,
+        "date": "2026-07-04 19:56:19",
+        "level": "Khởi Động (5x5)",
+        "algo": "AND-OR Graph Search (Complex Environments)",
+        "steps": 25,
+        "time": "1.94s",
+        "status": "Thành công"
+    },
+    {
+        "id": 66,
+        "date": "2026-07-04 19:56:38",
+        "level": "Khởi Động (5x5)",
+        "algo": "Local Beam Search (Local Search)",
+        "steps": 25,
+        "time": "1.18s",
+        "status": "Thành công"
+    },
+    {
+        "id": 67,
+        "date": "2026-07-04 19:56:46",
+        "level": "Khởi Động (5x5)",
+        "algo": "Minimax (Adversarial)",
+        "steps": 13,
+        "time": "1.73s",
+        "status": "AI MAX thắng ở trận 1"
+    },
+    {
+        "id": 68,
+        "date": "2026-07-05 14:31:13",
+        "level": "Khởi Động (5x5)",
+        "algo": "AND-OR Graph Search (Complex Environments)",
+        "steps": 25,
+        "time": "5.48s",
+        "status": "Thành công"
+    },
+    {
+        "id": 69,
+        "date": "2026-07-05 14:31:24",
+        "level": "Khởi Động (5x5)",
+        "algo": "Belief State Partial Observation (Complex Environments)",
+        "steps": 25,
+        "time": "5.44s",
+        "status": "Thành công"
+    },
+    {
+        "id": 70,
+        "date": "2026-07-05 14:34:40",
+        "level": "Khởi Động (5x5)",
+        "algo": "Alpha-Beta Pruning (Adversarial)",
+        "steps": 13,
+        "time": "3.40s",
+        "status": "Thất bại"
+    },
+    {
+        "id": 71,
+        "date": "2026-07-05 14:34:51",
+        "level": "Tiêu Chuẩn (6x6)",
+        "algo": "Alpha-Beta Pruning (Adversarial)",
+        "steps": 18,
+        "time": "4.86s",
+        "status": "Thất bại"
     }
 ]
