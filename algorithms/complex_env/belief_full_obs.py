@@ -1,8 +1,8 @@
 import random
-from typing import List, Optional
+from typing import List, Optional, Generator
 
 class FullObservationBeliefSolver:
-    """FULL OBSERVATION - DFS + Backtracking + Warnsdorff"""
+    """FULL OBSERVATION - DFS + Backtracking + Warnsdorff (Tối ưu cho 5x5, 6x6)"""
     
     def __init__(self, rows: int, cols: int, start_pos=None, obstacles=None):
         self.rows = rows
@@ -35,6 +35,11 @@ class FullObservationBeliefSolver:
         def dfs(current_path: List[tuple]):
             nonlocal visited_nodes_count
             visited_nodes_count += 1
+            
+            # Hiển thị tiến trình
+            if visited_nodes_count % 5000 == 0:
+                print(f"Full Obs | Đã duyệt {visited_nodes_count:,} nodes | Đường đi: {len(current_path)}/{self.total_cells}")
+
             yield current_path.copy(), visited_nodes_count, False
 
             if len(current_path) == self.total_cells:

@@ -1,5 +1,5 @@
 import random
-from typing import List
+from typing import List, Optional, Generator
 
 class PartialObservationBeliefSolver:
     """PARTIAL OBSERVATION - DFS + Backtracking + Warnsdorff"""
@@ -27,20 +27,22 @@ class PartialObservationBeliefSolver:
     def warnsdorff_score(self, pos: tuple, visited: set) -> int:
         return len(self.get_valid_moves(pos, visited | {pos}))
 
-    def solve(self, half: str = "left"):
+    def solve(self, initial_pos: Optional[tuple] = None, half: str = "left"):
+        start_pos = initial_pos or self.default_start or self.get_random_start()
         visited_nodes_count = 0
-        start_pos = self.default_start or self.get_random_start()
-        
-        mid = self.cols // 2
         path = [start_pos]
 
         def dfs(current_path: List[tuple]):
             nonlocal visited_nodes_count
             visited_nodes_count += 1
+
+            if visited_nodes_count % 5000 == 0 or len(current_path) % 5 == 0:
+                print(f"Partial Obs ({half}) | Nodes: {visited_nodes_count:,} | Đường: {len(current_path)}/{self.total_cells}")
+
             yield current_path.copy(), visited_nodes_count, False
 
             if len(current_path) == self.total_cells:
-                print(f"✅ Partial Observation - Tìm thấy đường đi hoàn chỉnh!")
+                print(f"✅ Partial Observation ({half}) - Tìm thấy đường đi hoàn chỉnh!")
                 yield current_path.copy(), visited_nodes_count, True
                 return True
 
@@ -48,6 +50,15 @@ class PartialObservationBeliefSolver:
             visited_set = set(current_path)
 
             moves = self.get_valid_moves(current_pos, visited_set)
+            
+            # === PARTIAL OBSERVATION (nới lỏng hơn) ===
+            mid = self.cols // 2
+            if half == "left":
+                # Cho phép đi sang phải một chút nếu đang ở biên
+                moves = [m for m in moves if m[1] <= mid + 1]
+            else:
+                moves = [m for m in moves if m[1] >= mid - 1]
+
             moves.sort(key=lambda p: self.warnsdorff_score(p, visited_set))
 
             for next_pos in moves:
@@ -58,7 +69,4 @@ class PartialObservationBeliefSolver:
 
             return False
 
-        found = yield from dfs(path)
-        if not found:
-            print(f"❌ Partial Observation - Không tìm thấy đường đi")
-            yield [], visited_nodes_count, False
+        return dfs(path)

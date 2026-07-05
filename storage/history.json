@@ -640,38 +640,151 @@
     },
     {
         "id": 72,
+<<<<<<< HEAD
         "date": "2026-07-05 18:25:52",
         "level": "Khởi Động (5x5)",
         "algo": "Belief State No Observation (Complex Environments)",
         "steps": 25,
         "time": "1.15s",
+=======
+        "date": "2026-07-05 20:35:20",
+        "level": "Khởi Động (5x5)",
+        "algo": "Belief State Full Observation (Complex Environments)",
+        "steps": 25,
+        "time": "1.09s",
+>>>>>>> 9443f61 ( Sửa Partial và Full Obs)
         "status": "Thành công"
     },
     {
         "id": 73,
+<<<<<<< HEAD
         "date": "2026-07-05 18:26:27",
         "level": "Khởi Động (5x5)",
         "algo": "Belief State Partial Observation (Complex Environments)",
         "steps": 0,
         "time": "7.80s",
+=======
+        "date": "2026-07-05 20:35:26",
+        "level": "Khởi Động (5x5)",
+        "algo": "Belief State Partial Observation (Complex Environments)",
+        "steps": 0,
+        "time": "1.08s",
+>>>>>>> 9443f61 ( Sửa Partial và Full Obs)
         "status": "Thất bại"
     },
     {
         "id": 74,
+<<<<<<< HEAD
         "date": "2026-07-05 18:26:53",
         "level": "Khởi Động (5x5)",
         "algo": "Belief State Full Observation (Complex Environments)",
         "steps": 0,
         "time": "8.12s",
+=======
+        "date": "2026-07-05 20:35:30",
+        "level": "Khởi Động (5x5)",
+        "algo": "Belief State Partial Observation (Complex Environments)",
+        "steps": 0,
+        "time": "0.84s",
+>>>>>>> 9443f61 ( Sửa Partial và Full Obs)
         "status": "Thất bại"
     },
     {
         "id": 75,
+<<<<<<< HEAD
         "date": "2026-07-05 18:27:41",
         "level": "Khởi Động (5x5)",
         "algo": "Alpha-Beta Pruning (Adversarial)",
         "steps": 13,
         "time": "1.39s",
+=======
+        "date": "2026-07-05 20:36:06",
+        "level": "Tiêu Chuẩn (6x6)",
+        "algo": "Belief State Partial Observation (Complex Environments)",
+        "steps": 0,
+        "time": "0.90s",
+        "status": "Thất bại"
+    },
+    {
+        "id": 76,
+        "date": "2026-07-05 20:36:31",
+        "level": "Tiêu Chuẩn (6x6)",
+        "algo": "Belief State Partial Observation (Complex Environments)",
+        "steps": 0,
+        "time": "0.62s",
+        "status": "Thất bại"
+    },
+    {
+        "id": 77,
+        "date": "2026-07-05 20:36:35",
+        "level": "Khởi Động (5x5)",
+        "algo": "Belief State Partial Observation (Complex Environments)",
+        "steps": 0,
+        "time": "1.89s",
+        "status": "Thất bại"
+    },
+    {
+        "id": 78,
+        "date": "2026-07-05 20:37:00",
+        "level": "Khởi Động (5x5)",
+        "algo": "Belief State Partial Observation (Complex Environments)",
+        "steps": 0,
+        "time": "1.04s",
+        "status": "Thất bại"
+    },
+    {
+        "id": 79,
+        "date": "2026-07-05 20:37:49",
+        "level": "Khởi Động (5x5)",
+        "algo": "Belief State Partial Observation (Complex Environments)",
+        "steps": 1,
+        "time": "0.41s",
+        "status": "Thất bại"
+    },
+    {
+        "id": 80,
+        "date": "2026-07-05 20:38:23",
+        "level": "Khởi Động (5x5)",
+        "algo": "Belief State Full Observation (Complex Environments)",
+        "steps": 0,
+        "time": "14.82s",
+        "status": "Thất bại"
+    },
+    {
+        "id": 81,
+        "date": "2026-07-05 20:39:00",
+        "level": "Khởi Động (5x5)",
+        "algo": "Belief State Full Observation (Complex Environments)",
+        "steps": 0,
+        "time": "34.26s",
+        "status": "Thất bại"
+    },
+    {
+        "id": 82,
+        "date": "2026-07-05 20:39:41",
+        "level": "Khởi Động (5x5)",
+        "algo": "Belief State Full Observation (Complex Environments)",
+        "steps": 25,
+        "time": "5.47s",
+        "status": "Thành công"
+    },
+    {
+        "id": 83,
+        "date": "2026-07-05 20:40:19",
+        "level": "Khởi Động (5x5)",
+        "algo": "Belief State Partial Observation (Complex Environments)",
+        "steps": 13,
+        "time": "33.46s",
+        "status": "Thất bại"
+    },
+    {
+        "id": 84,
+        "date": "2026-07-05 20:40:45",
+        "level": "Khởi Động (5x5)",
+        "algo": "Belief State Partial Observation (Complex Environments)",
+        "steps": 13,
+        "time": "20.97s",
+>>>>>>> 9443f61 ( Sửa Partial và Full Obs)
         "status": "Thất bại"
     }
 ]
